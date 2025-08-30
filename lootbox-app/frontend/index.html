@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover amazing movies and TV shows through our gamified discovery system">
+    <title>DiscoveryBox - Curated Content Discovery</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/components.css?v=3">
+    <link rel="stylesheet" href="css/themes.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+    <!-- Background particles -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🎬</span>
+                <span class="brand-text">DiscoveryBox</span>
+            </div>
+            
+            <div class="nav-menu">
+                <button class="nav-btn" id="loginBtn" data-screen="login">Login</button>
+                <button class="nav-btn primary" id="registerBtn" data-screen="register">Register</button>
+                <div class="user-menu hidden" id="userMenu">
+                    <span class="username" id="navUsername"></span>
+                    <button class="nav-btn" id="trophyBtn" data-screen="trophy">Trophy Cabinet</button>
+                    <button class="nav-btn admin-only hidden" id="adminBtn" data-screen="admin">Admin Panel</button>
+                    <button class="nav-btn" id="logoutBtn">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="main-container">
+        
+        <!-- Login Screen -->
+        <div class="screen" id="loginScreen">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h2 class="auth-title">Welcome Back</h2>
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary full-width">Login</button>
+                    </form>
+                    <p class="auth-switch">
+                        Don't have an account? 
+                        <a href="#" id="switchToRegister">Sign up here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Screen -->
+        <div class="screen hidden" id="registerScreen">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <h2 class="auth-title">Create Account</h2>
+                    <form id="registerForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="registerUsername">Username</label>
+                            <input type="text" id="registerUsername" name="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" id="registerEmail" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Password</label>
+                            <input type="password" id="registerPassword" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary full-width">Create Account</button>
+                    </form>
+                    <p class="auth-switch">
+                        Already have an account? 
+                        <a href="#" id="switchToLogin">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loot Box Game Screen -->
+        <div class="screen hidden" id="gameScreen">
+            
+            <!-- Top Right Controls -->
+            <div class="top-controls">
+                <button class="info-button" id="infoBtn">ℹ️</button>
+                <div class="spin-status" id="spinStatus">
+                    <div class="spins-remaining">
+                        <span class="spins-count" id="spinsCount">3</span>
+                        <span class="spins-label">spins remaining</span>
+                    </div>
+                </div>
+                <button class="btn btn-secondary top-up-btn" id="topUpSpinsBtn">Top Up Spins (Test)</button>
+            </div>
+
+            <!-- Selection Screen -->
+            <div class="game-container" id="selectionScreen">
+                <div class="game-header">
+                    <h1 class="main-title">Content Discovery</h1>
+                    <h2 class="sub-title">Choose Your Adventure</h2>
+                </div>
+
+                <div class="choices">
+                    <div class="choice-card" id="movieChoice">
+                        <div class="choice-icon">🎬</div>
+                        <div class="choice-content">
+                            <h3>Movies</h3>
+                            <p>Discover amazing films from blockbusters to hidden gems</p>
+                        </div>
+                    </div>
+
+                    <div class="choice-card" id="seriesChoice">
+                        <div class="choice-icon">📺</div>
+                        <div class="choice-content">
+                            <h3>TV Series</h3>
+                            <p>Explore captivating series across all genres</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DiscoveryBox Animation Screen -->
+            <div class="game-container hidden" id="discoveryboxScreen">
+                <div class="discoverybox-container">
+                    <div class="discoverybox" id="discoverybox">
+                        <div class="discoverybox-face"></div>
+                        <div class="discoverybox-face"></div>
+                        <div class="discoverybox-face"></div>
+                        <div class="discoverybox-face"></div>
+                        <div class="discoverybox-face"></div>
+                        <div class="discoverybox-face"></div>
+                    </div>
+                    <div class="loading-text">Opening...</div>
+                </div>
+            </div>
+
+            <!-- Result Screen -->
+            <div class="game-container hidden" id="resultScreen">
+                <div class="result-card" id="resultCard">
+                    <div class="result-header">
+                        <div class="content-badge" id="contentBadge"></div>
+                        <div class="rarity-badge" id="rarityBadge"></div>
+                        <div class="unlock-status" id="unlockStatus"></div>
+                    </div>
+
+                    <div class="result-content">
+                        <h2 class="content-title" id="contentTitle"></h2>
+                        <div class="content-rating" id="contentRating"></div>
+                        <div class="quality-score" id="qualityScore"></div>
+                        
+                        <div class="content-details">
+                            <div class="detail-row">
+                                <span class="detail-label">Year:</span>
+                                <span class="detail-value" id="contentYear"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Duration:</span>
+                                <span class="detail-value" id="contentDuration"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Release:</span>
+                                <span class="detail-value" id="releaseInfo"></span>
+                            </div>
+                        </div>
+
+                        <div class="content-description" id="contentDescription"></div>
+                        
+                        <div class="result-actions">
+                            <button class="btn btn-primary" id="discoverAnotherBtn">Discover Another</button>
+                            <button class="btn btn-secondary" id="viewTrophiesBtn">View Trophies</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legendary Particles (for special effects) -->
+            <div class="legendary-particles hidden" id="legendaryParticles"></div>
+            
+            <!-- Burst Animation Container -->
+            <div class="burst-container" id="burstContainer"></div>
+        </div>
+
+        <!-- Trophy Cabinet Screen -->
+        <div class="screen hidden" id="trophyScreen">
+            <div class="trophy-container">
+                <div class="trophy-header">
+                    <h2 class="trophy-title">Trophy Cabinet</h2>
+                    <div class="trophy-stats" id="trophyStats"></div>
+                </div>
+
+                <div class="trophy-filters">
+                    <select id="typeFilter">
+                        <option value="">All Types</option>
+                        <option value="movie">Movies</option>
+                        <option value="series">TV Series</option>
+                    </select>
+                    <select id="rarityFilter">
+                        <option value="">All Rarities</option>
+                        <option value="mythic">Mythic</option>
+                        <option value="legendary">Legendary</option>
+                        <option value="epic">Epic</option>
+                        <option value="rare">Rare</option>
+                        <option value="uncommon">Uncommon</option>
+                        <option value="common">Common</option>
+                    </select>
+                    <button class="btn btn-secondary" id="backToGameBtn">Back to Game</button>
+                </div>
+
+                <div class="trophy-grid" id="trophyGrid">
+                    <!-- Trophy items will be populated by JavaScript -->
+                </div>
+
+                <div class="trophy-pagination" id="trophyPagination"></div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Screen -->
+        <div class="screen hidden" id="adminScreen">
+            <div class="admin-container">
+                <div class="admin-header">
+                    <h2 class="admin-title">Admin Panel</h2>
+                    <button class="btn btn-secondary" id="backToGameFromAdmin">Back to Game</button>
+                </div>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="content">Content Management</button>
+                    <button class="admin-tab" data-tab="users">User Management</button>
+                    <button class="admin-tab" data-tab="settings">Settings</button>
+                </div>
+
+                <!-- Content Management Tab -->
+                <div class="admin-tab-content active" id="contentTab">
+                    <div class="admin-controls">
+                        <div class="admin-filters">
+                            <select id="adminTypeFilter">
+                                <option value="">All Types</option>
+                                <option value="movie">Movies</option>
+                                <option value="series">TV Series</option>
+                            </select>
+                            <select id="adminRarityFilter">
+                                <option value="">All Rarities</option>
+                                <option value="mythic">Mythic</option>
+                                <option value="legendary">Legendary</option>
+                                <option value="epic">Epic</option>
+                                <option value="rare">Rare</option>
+                                <option value="uncommon">Uncommon</option>
+                                <option value="common">Common</option>
+                            </select>
+                            <select id="adminSortFilter">
+                                <option value="quality_score_desc">Quality Score (High to Low)</option>
+                                <option value="quality_score_asc">Quality Score (Low to High)</option>
+                                <option value="title_asc">Title (A-Z)</option>
+                                <option value="title_desc">Title (Z-A)</option>
+                                <option value="year_desc">Year (Newest)</option>
+                                <option value="year_asc">Year (Oldest)</option>
+                            </select>
+                        </div>
+                        <div class="admin-stats">
+                            <span class="admin-stat">Total: <span id="totalContentCount">0</span></span>
+                            <span class="admin-stat">Movies: <span id="movieCount">0</span></span>
+                            <span class="admin-stat">Series: <span id="seriesCount">0</span></span>
+                        </div>
+                    </div>
+
+                    <div class="admin-content-grid" id="adminContentGrid">
+                        <!-- Content items will be populated here -->
+                    </div>
+
+                    <div class="admin-pagination" id="adminPagination">
+                        <!-- Pagination controls -->
+                    </div>
+                </div>
+
+                <!-- Other tabs (placeholder) -->
+                <div class="admin-tab-content" id="usersTab">
+                    <h3>User Management</h3>
+                    <p>User management features coming soon...</p>
+                </div>
+
+                <div class="admin-tab-content" id="settingsTab">
+                    <h3>Settings</h3>
+                    <p>Admin settings coming soon...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Algorithm Info Modal -->
+    <div class="modal-overlay hidden" id="modalOverlay">
+        <div class="modal-content" id="modalContent">
+            <button class="modal-close" id="closeModal">×</button>
+            <h3>How It Works</h3>
+            <div class="modal-body">
+                <h4>Quality Score Algorithm</h4>
+                <p>Our algorithm combines multiple factors to curate the best content:</p>
+                <ul>
+                    <li><strong>Critics Score (65%)</strong> - Professional reviews</li>
+                    <li><strong>Audience Score (35%)</strong> - User ratings</li>
+                    <li><strong>Bonuses:</strong> Certified Fresh (+5), Verified Hot (+3), High IMDb (+4-7)</li>
+                </ul>
+
+                <h4>Rarity Tiers</h4>
+                <ul>
+                    <li><strong>🌟 Mythic (95+)</strong> - Once in a lifetime content</li>
+                    <li><strong>👑 Legendary (90+)</strong> - Masterpiece tier</li>
+                    <li><strong>💎 Epic (85+)</strong> - Outstanding quality</li>
+                    <li><strong>⭐ Rare (80+)</strong> - Great finds</li>
+                    <li><strong>🔹 Uncommon (75+)</strong> - Solid choices</li>
+                    <li><strong>⚪ Common (70+)</strong> - Good entertainment</li>
+                </ul>
+
+                <h4>Daily Limits</h4>
+                <p>Each user gets 3 spins per day to encourage discovery without overwhelming choice.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading...</div>
+    </div>
+
+    <!-- Notification System -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- JavaScript -->
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/api.js?v=5"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/discoverybox.js?v=3"></script>
+    <script src="js/trophy.js?v=4"></script>
+    <script src="js/admin.js?v=1"></script>
+    <script src="js/ui.js?v=4"></script>
+    <script src="js/app.js?v=3"></script>
+</body>
+</html>

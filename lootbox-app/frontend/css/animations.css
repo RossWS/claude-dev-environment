@@ -1,0 +1,460 @@
+/* Animations and Visual Effects */
+
+/* Background Particles */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.8) 0%, rgba(102, 126, 234, 0) 70%);
+    border-radius: 50%;
+    animation: float 15s infinite linear;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+    }
+}
+
+/* Lootbox Animations */
+@keyframes rotate {
+    0% {
+        transform: rotateY(0deg) rotateX(0deg);
+    }
+    100% {
+        transform: rotateY(360deg) rotateX(360deg);
+    }
+}
+
+@keyframes discoveryboxPulse {
+    0% {
+        transform: scale(1) rotateY(0deg);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        transform: scale(1.05) rotateY(5deg);
+        box-shadow: 0 0 40px rgba(102, 126, 234, 0.6);
+    }
+    100% {
+        transform: scale(1) rotateY(0deg);
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+    }
+}
+
+@keyframes discoveryboxOpen {
+    0% {
+        transform: rotateX(0deg);
+    }
+    50% {
+        transform: rotateX(-90deg);
+    }
+    100% {
+        transform: rotateX(-180deg);
+    }
+}
+
+@keyframes discoveryboxGlow {
+    0% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+}
+
+/* Rarity-based Glows */
+.rarity-glow-common {
+    box-shadow: 0 0 30px rgba(153, 153, 153, 0.6);
+}
+
+.rarity-glow-uncommon {
+    box-shadow: 0 0 40px rgba(76, 175, 80, 0.6);
+}
+
+.rarity-glow-rare {
+    box-shadow: 0 0 50px rgba(33, 150, 243, 0.6);
+}
+
+.rarity-glow-epic {
+    box-shadow: 0 0 60px rgba(156, 39, 176, 0.6);
+}
+
+.rarity-glow-legendary {
+    box-shadow: 0 0 80px rgba(255, 215, 0, 0.8);
+    animation: legendaryPulse 2s ease-in-out infinite;
+}
+
+.rarity-glow-mythic {
+    box-shadow: 0 0 100px rgba(255, 0, 255, 0.9);
+    animation: mythicPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes legendaryPulse {
+    0%, 100% {
+        box-shadow: 0 0 80px rgba(255, 215, 0, 0.8);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 120px rgba(255, 215, 0, 1);
+        transform: scale(1.05);
+    }
+}
+
+@keyframes mythicPulse {
+    0%, 100% {
+        box-shadow: 0 0 100px rgba(255, 0, 255, 0.9);
+        transform: scale(1) rotateZ(0deg);
+    }
+    25% {
+        box-shadow: 0 0 140px rgba(255, 0, 255, 1);
+        transform: scale(1.08) rotateZ(1deg);
+    }
+    75% {
+        box-shadow: 0 0 140px rgba(255, 0, 255, 1);
+        transform: scale(1.08) rotateZ(-1deg);
+    }
+}
+
+/* Legendary Particles */
+.legendary-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.legendary-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 1) 0%, rgba(255, 215, 0, 0) 70%);
+    border-radius: 50%;
+    animation: legendaryFloat 8s infinite ease-in-out;
+}
+
+@keyframes legendaryFloat {
+    0% {
+        transform: translateY(100vh) translateX(-50px) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(90vh) translateX(-40px) scale(1);
+    }
+    50% {
+        transform: translateY(50vh) translateX(50px) scale(1.5);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(10vh) translateX(40px) scale(1);
+    }
+    100% {
+        transform: translateY(-10vh) translateX(-50px) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Burst Animation */
+.burst-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.burst-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    animation: burst-out 1s ease-out forwards;
+}
+
+@keyframes burst-out {
+    0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 1;
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--x, 0), var(--y, 0)) scale(1);
+        opacity: 0;
+    }
+}
+
+/* Card Animations */
+.card-enter {
+    animation: cardSlideIn 0.5s ease-out forwards;
+}
+
+@keyframes cardSlideIn {
+    0% {
+        transform: translateY(30px) scale(0.9);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.card-exit {
+    animation: cardSlideOut 0.3s ease-in forwards;
+}
+
+@keyframes cardSlideOut {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-30px) scale(0.9);
+        opacity: 0;
+    }
+}
+
+/* Choice Card Hover Effects */
+.choice-card {
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.choice-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.choice-card:hover::before {
+    left: 100%;
+}
+
+.choice-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+/* Loading Animations */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: var(--accent-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.loading-text {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Notification Animations */
+.notification-enter {
+    animation: notificationSlideIn 0.3s ease-out forwards;
+}
+
+.notification-exit {
+    animation: notificationSlideOut 0.3s ease-in forwards;
+}
+
+@keyframes notificationSlideIn {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes notificationSlideOut {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Trophy Animation Effects */
+.trophy-unlock {
+    animation: trophyUnlock 0.8s ease-out forwards;
+}
+
+@keyframes trophyUnlock {
+    0% {
+        transform: scale(0) rotateZ(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotateZ(-90deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1) rotateZ(0deg);
+        opacity: 1;
+    }
+}
+
+/* Rarity Badge Animations */
+.rarity-badge {
+    position: relative;
+    overflow: hidden;
+}
+
+.rarity-badge.legendary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+.rarity-badge.mythic::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 0, 255, 0.3), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Hover Effects */
+.hover-lift {
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Focus Animations */
+@keyframes focusRing {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0);
+    }
+}
+
+.focus-ring:focus {
+    animation: focusRing 0.6s ease-out;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .particle {
+        width: 3px;
+        height: 3px;
+    }
+    
+    .legendary-particle {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .burst-particle {
+        width: 4px;
+        height: 4px;
+    }
+    
+    /* Reduce motion for mobile performance */
+    .choice-card:hover {
+        transform: translateY(-2px) scale(1.01);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Respect user's motion preferences */
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .particle,
+    .legendary-particle {
+        animation: none;
+        opacity: 0.3;
+    }
+}
