@@ -2,7 +2,7 @@
 
 class API {
     constructor() {
-        this.baseURL = '/api';  // Same origin, port 5000
+        this.baseURL = 'http://localhost:5000/api';  // Backend server on port 5000
         this.token = Utils.storage.get('authToken');
         this.refreshTokenPromise = null;
         console.log('API initialized with baseURL:', this.baseURL);
@@ -166,6 +166,11 @@ class API {
         // Get achievements
         async getAchievements() {
             return api.get('/user/achievements');
+        },
+
+        // Get unlock statistics by rarity
+        async getUnlockStats(params = {}) {
+            return api.get('/user/unlock-stats', params);
         },
 
         // Top up spins (testing only)

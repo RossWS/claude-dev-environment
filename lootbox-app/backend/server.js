@@ -6,6 +6,17 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
+// Validate critical environment variables
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+    console.error('❌ JWT_SECRET must be set and at least 32 characters long');
+    process.exit(1);
+}
+
+if (process.env.NODE_ENV === 'production' && (!process.env.ALLOWED_ORIGINS)) {
+    console.error('❌ ALLOWED_ORIGINS must be set in production');
+    process.exit(1);
+}
+
 const authRoutes = require('./routes/auth');
 const lootboxRoutes = require('./routes/lootbox');
 const adminRoutes = require('./routes/admin');
@@ -19,9 +30,22 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(compression());
 
-// CORS configuration
+// CORS configuration - production ready
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+    ? (process.env.ALLOWED_ORIGINS || '').split(',').map(origin => origin.trim())
+    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000'];
+
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, postman, etc.)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS policy'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

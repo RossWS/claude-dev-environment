@@ -206,21 +206,58 @@
                 </div>
 
                 <div class="trophy-filters">
-                    <select id="typeFilter">
-                        <option value="">All Types</option>
-                        <option value="movie">Movies</option>
-                        <option value="series">TV Series</option>
-                    </select>
-                    <select id="rarityFilter">
-                        <option value="">All Rarities</option>
-                        <option value="mythic">Mythic</option>
-                        <option value="legendary">Legendary</option>
-                        <option value="epic">Epic</option>
-                        <option value="rare">Rare</option>
-                        <option value="uncommon">Uncommon</option>
-                        <option value="common">Common</option>
-                    </select>
-                    <button class="btn btn-secondary" id="backToGameBtn">Back to Game</button>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="groupByRarityToggle">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-label">Group by Rarity</span>
+                            </label>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <select id="typeFilter">
+                                <option value="">All Types</option>
+                                <option value="movie">Movies</option>
+                                <option value="series">TV Series</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <select id="rarityFilter">
+                                <option value="">All Rarities</option>
+                                <option value="mythic">Mythic</option>
+                                <option value="legendary">Legendary</option>
+                                <option value="epic">Epic</option>
+                                <option value="rare">Rare</option>
+                                <option value="uncommon">Uncommon</option>
+                                <option value="common">Common</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <select id="sortFilter">
+                                <option value="unlock_time">Recently Unlocked</option>
+                                <option value="unlock_time_asc">Oldest Unlocks</option>
+                                <option value="title_asc">Title (A-Z)</option>
+                                <option value="title_desc">Title (Z-A)</option>
+                                <option value="release_year">Release Year (Newest)</option>
+                                <option value="release_year_asc">Release Year (Oldest)</option>
+                                <option value="quality_score">Quality Score (High)</option>
+                                <option value="quality_score_asc">Quality Score (Low)</option>
+                                <option value="critics_score">Critics Score (High)</option>
+                                <option value="audience_score">Audience Score (High)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-row">
+                        <div class="rarity-counters" id="rarityCounters">
+                            <!-- Unlock counters will be populated here -->
+                        </div>
+                        
+                        <button class="btn btn-secondary" id="backToGameBtn">Back to Game</button>
+                    </div>
                 </div>
 
                 <div class="trophy-grid" id="trophyGrid">
@@ -312,10 +349,14 @@
                 <h4>Quality Score Algorithm</h4>
                 <p>Our algorithm combines multiple factors to curate the best content:</p>
                 <ul>
-                    <li><strong>Critics Score (65%)</strong> - Professional reviews</li>
-                    <li><strong>Audience Score (35%)</strong> - User ratings</li>
-                    <li><strong>Bonuses:</strong> Certified Fresh (+5), Verified Hot (+3), High IMDb (+4-7)</li>
+                    <li><strong>Critics Score (80%)</strong> - Professional reviews heavily weighted</li>
+                    <li><strong>Audience Score (20%)</strong> - User ratings with reduced influence</li>
+                    <li><strong>Bonuses:</strong> Certified Fresh (+5), Verified Hot (+3), High IMDb (+3-8)</li>
+                    <li><strong>Penalties:</strong> Low critic scores (-5 to -10), Mainstream bias penalty (-5 to -10 when audience score exceeds critic score by 10+ points)</li>
                 </ul>
+                <p style="font-size: 0.9em; color: #a0a0b0; margin-top: 10px;">
+                    <em>The mainstream bias penalty helps filter out crowd-pleasers that lack critical acclaim, ensuring higher-quality discoveries.</em>
+                </p>
 
                 <h4>Rarity Tiers</h4>
                 <ul>
@@ -344,10 +385,10 @@
 
     <!-- JavaScript -->
     <script src="js/utils.js?v=3"></script>
-    <script src="js/api.js?v=5"></script>
+    <script src="js/api.js?v=7"></script>
     <script src="js/auth.js?v=3"></script>
     <script src="js/discoverybox.js?v=3"></script>
-    <script src="js/trophy.js?v=4"></script>
+    <script src="js/trophy.js?v=5"></script>
     <script src="js/admin.js?v=1"></script>
     <script src="js/ui.js?v=4"></script>
     <script src="js/app.js?v=3"></script>

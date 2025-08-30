@@ -104,7 +104,7 @@
 }
 
 .rarity-glow-epic {
-    box-shadow: 0 0 60px rgba(156, 39, 176, 0.6);
+    box-shadow: 0 0 60px rgba(46, 125, 50, 0.6);
 }
 
 .rarity-glow-legendary {
@@ -453,8 +453,53 @@
     }
     
     .particle,
-    .legendary-particle {
+    .legendary-particle,
+    .mythic-particle {
         animation: none;
         opacity: 0.3;
     }
 }
+
+/* Mythic Particles - Larger and More Dramatic */
+.mythic-particle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, 
+        rgba(255, 0, 255, 1) 0%, 
+        rgba(186, 104, 200, 0.8) 30%,
+        rgba(255, 0, 255, 0.6) 60%,
+        rgba(255, 0, 255, 0) 100%);
+    border-radius: 50%;
+    animation: mythicFloat 8s infinite ease-in-out;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+}
+
+@keyframes mythicFloat {
+    0% {
+        transform: translateY(100vh) translateX(-80px) scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(90vh) translateX(-60px) scale(1) rotate(45deg);
+    }
+    30% {
+        transform: translateY(70vh) translateX(60px) scale(1.8) rotate(135deg);
+    }
+    50% {
+        transform: translateY(50vh) translateX(-40px) scale(2.2) rotate(225deg);
+    }
+    70% {
+        transform: translateY(30vh) translateX(80px) scale(1.5) rotate(315deg);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(10vh) translateX(-60px) scale(1) rotate(405deg);
+    }
+    100% {
+        transform: translateY(-10vh) translateX(-80px) scale(0) rotate(450deg);
+        opacity: 0;
+    }
+}
+

@@ -537,12 +537,20 @@ class FullContentSeeder {
         const criticsPenalty = item.criticsScore < 80 ? -5 : 0;
         const lowCriticsMajorPenalty = item.criticsScore < 70 ? -5 : 0; // Additional penalty for very low critics scores
         
+        // NEW: Penalize when audience score significantly exceeds critic score (mainstream bias)
+        const scoreDifference = item.audienceScore - item.criticsScore;
+        let mainstreamPenalty = 0;
+        if (scoreDifference > 10) {
+            // Moderate penalty for 10-20 point gaps
+            mainstreamPenalty = scoreDifference > 20 ? -10 : -5;
+        }
+        
         // Bonuses remain the same but are now worth less relative to critics score
         const certifiedBonus = item.certifiedFresh ? 5 : 0;
         const hotBonus = item.verifiedHot ? 3 : 0;
         const imdbBonus = item.imdbRating >= 8.5 ? 8 : item.imdbRating >= 8.0 ? 6 : item.imdbRating >= 7.5 ? 3 : 0;
         
-        return Math.round(baseScore + certifiedBonus + hotBonus + imdbBonus + criticsPenalty + lowCriticsMajorPenalty);
+        return Math.round(baseScore + certifiedBonus + hotBonus + imdbBonus + criticsPenalty + lowCriticsMajorPenalty + mainstreamPenalty);
     }
 
     // Rarity determination - PLACEHOLDER (will be recalculated after seeding)

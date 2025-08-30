@@ -75,10 +75,26 @@ class DatabaseSetup {
 
     async seedData() {
         try {
-            // Create admin user
+            // Create admin user with secure password generation
             const bcrypt = require('bcryptjs');
-            const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-            const adminEmail = process.env.ADMIN_EMAIL || 'admin@lootbox.app';
+            const crypto = require('crypto');
+            
+            // Generate secure admin password if not provided
+            let adminPassword = process.env.ADMIN_PASSWORD;
+            if (!adminPassword) {
+                adminPassword = crypto.randomBytes(16).toString('hex') + 'A1!';
+                console.warn('🔐 No ADMIN_PASSWORD set. Generated secure password:');
+                console.warn(`   Email: admin@discoverybox.app`);
+                console.warn(`   Password: ${adminPassword}`);
+                console.warn('   SAVE THIS PASSWORD - it will not be shown again!');
+            }
+            
+            // Validate password strength
+            if (adminPassword.length < 12) {
+                throw new Error('Admin password must be at least 12 characters long');
+            }
+            
+            const adminEmail = process.env.ADMIN_EMAIL || 'admin@discoverybox.app';
             const hashedPassword = await bcrypt.hash(adminPassword, 12);
 
             await this.run(`
@@ -86,7 +102,7 @@ class DatabaseSetup {
                 VALUES (?, ?, ?, ?)
             `, ['admin', adminEmail, hashedPassword, true]);
 
-            console.log('👑 Admin user created (admin@lootbox.app / admin123)');
+            console.log('👑 Admin user created successfully');
 
             // Sample content from your original data
             const sampleContent = [

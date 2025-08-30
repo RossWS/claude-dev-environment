@@ -15,7 +15,9 @@
     "db:migrate": "node backend/utils/migrate-database.js",
     "test": "jest",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "backup": "node backup-db.js",
+    "postinstall": "node backup-db.js"
   },
   "keywords": ["discoverybox", "content", "discovery", "movies", "tv", "gamification", "streaming"],
   "author": "Your Name",

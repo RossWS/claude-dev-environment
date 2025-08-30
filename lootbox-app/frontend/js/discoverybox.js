@@ -109,8 +109,10 @@ class DiscoveryBoxGame {
         // Update spin status
         this.updateSpinStatus(spins);
 
-        // Show legendary particles for legendary items
-        if (content.rarity.tier === 'legendary' || content.rarity.tier === 'mythic') {
+        // Show special particles for high rarity items
+        if (content.rarity.tier === 'mythic') {
+            this.createMythicEffects();
+        } else if (content.rarity.tier === 'legendary') {
             this.createLegendaryParticles();
         }
     }
@@ -214,6 +216,64 @@ class DiscoveryBoxGame {
         }, 8000);
     }
 
+    createMythicEffects() {
+        // Transform entire site background to mythic theme
+        this.transformBackgroundToMythic();
+        
+        // Create enhanced mythic particles
+        const container = document.getElementById('legendaryParticles');
+        if (!container) return;
+
+        container.classList.remove('hidden');
+        container.innerHTML = '';
+
+        // Create larger, more intense mythic particles
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'mythic-particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 3 + 's';
+            particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+            container.appendChild(particle);
+        }
+
+        // Keep mythic effects longer
+        setTimeout(() => {
+            container.classList.add('hidden');
+            this.restoreNormalBackground();
+        }, 12000);
+    }
+
+    transformBackgroundToMythic() {
+        const particlesContainer = document.getElementById('particles');
+        if (!particlesContainer) return;
+
+        // Transform existing particles to mythic colors
+        const particles = particlesContainer.querySelectorAll('.particle');
+        particles.forEach(particle => {
+            particle.style.background = 'radial-gradient(circle, rgba(255, 0, 255, 0.9) 0%, rgba(255, 0, 255, 0) 70%)';
+            particle.style.boxShadow = '0 0 10px rgba(255, 0, 255, 0.8)';
+        });
+
+        // Change body background gradient temporarily
+        document.body.style.background = 'linear-gradient(135deg, #1a0f2e 0%, #2e1a3e 50%, #3e1642 100%)';
+    }
+
+    restoreNormalBackground() {
+        const particlesContainer = document.getElementById('particles');
+        if (!particlesContainer) return;
+
+        // Restore particles to normal colors
+        const particles = particlesContainer.querySelectorAll('.particle');
+        particles.forEach(particle => {
+            particle.style.background = 'radial-gradient(circle, rgba(138, 43, 226, 0.8) 0%, rgba(138, 43, 226, 0) 70%)';
+            particle.style.boxShadow = '';
+        });
+
+        // Restore normal background
+        document.body.style.background = '';
+    }
+
     updateSpinStatus(spins) {
         const spinsCount = document.getElementById('spinsCount');
         const spinStatus = document.getElementById('spinStatus');
@@ -229,19 +289,26 @@ class DiscoveryBoxGame {
     }
 
     resetGame() {
-        this.currentType = null;
-        this.selectedContent = null;
-        this.isOpening = false;
+        try {
+            this.currentType = null;
+            this.selectedContent = null;
+            this.isOpening = false;
 
-        // Show selection screen
-        this.selectionScreen.classList.remove('hidden');
-        this.discoveryboxScreen.classList.add('hidden');
-        this.resultScreen.classList.add('hidden');
+            // Show selection screen
+            this.selectionScreen.classList.remove('hidden');
+            this.discoveryboxScreen.classList.add('hidden');
+            this.resultScreen.classList.add('hidden');
 
-        // Hide legendary particles
-        const legendaryParticles = document.getElementById('legendaryParticles');
-        if (legendaryParticles) {
-            legendaryParticles.classList.add('hidden');
+            // Hide legendary particles
+            const legendaryParticles = document.getElementById('legendaryParticles');
+            if (legendaryParticles) {
+                legendaryParticles.classList.add('hidden');
+            }
+
+            // Restore normal background (in case mythic effects are still active)
+            this.restoreNormalBackground();
+        } catch (error) {
+            console.error('Error in resetGame:', error);
         }
 
         // Reset discoverybox glow

@@ -61,7 +61,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 // Get user's trophy cabinet (unlocked content)
 router.get('/trophy-cabinet', authenticateToken, async (req, res) => {
     try {
-        const { type, rarity, page = 1, limit = 20 } = req.query;
+        const { type, rarity, page = 1, limit = 20, sort = 'unlock_time', groupByRarity = false } = req.query;
         const userId = req.user.userId;
         const offset = (page - 1) * limit;
 
@@ -103,7 +103,57 @@ router.get('/trophy-cabinet', authenticateToken, async (req, res) => {
             params.push(rarity);
         }
 
-        sql += ' ORDER BY u.unlocked_at DESC LIMIT ? OFFSET ?';
+        // Add sorting
+        let orderBy = 'u.unlocked_at DESC';
+        switch (sort) {
+            case 'unlock_time_asc':
+                orderBy = 'u.unlocked_at ASC';
+                break;
+            case 'title_asc':
+                orderBy = 'c.title ASC';
+                break;
+            case 'title_desc':
+                orderBy = 'c.title DESC';
+                break;
+            case 'release_year':
+                orderBy = 'c.year DESC';
+                break;
+            case 'release_year_asc':
+                orderBy = 'c.year ASC';
+                break;
+            case 'quality_score':
+                orderBy = 'c.quality_score DESC';
+                break;
+            case 'quality_score_asc':
+                orderBy = 'c.quality_score ASC';
+                break;
+            case 'critics_score':
+                orderBy = 'c.critics_score DESC';
+                break;
+            case 'audience_score':
+                orderBy = 'c.audience_score DESC';
+                break;
+            default:
+                orderBy = 'u.unlocked_at DESC';
+        }
+
+        // If grouping by rarity, add rarity tier ordering first
+        if (groupByRarity === 'true') {
+            const rarityOrder = `
+                CASE u.rarity_tier 
+                    WHEN 'mythic' THEN 1 
+                    WHEN 'legendary' THEN 2 
+                    WHEN 'epic' THEN 3 
+                    WHEN 'rare' THEN 4 
+                    WHEN 'uncommon' THEN 5 
+                    WHEN 'common' THEN 6 
+                    ELSE 7 
+                END
+            `;
+            orderBy = `${rarityOrder}, ${orderBy}`;
+        }
+
+        sql += ` ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), parseInt(offset));
 
         const unlocks = await db.all(sql, params);
@@ -150,6 +200,85 @@ router.get('/trophy-cabinet', authenticateToken, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching trophy cabinet'
+        });
+    }
+});
+
+// Get unlock statistics by rarity
+router.get('/unlock-stats', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { type } = req.query;
+
+        // Get total content counts by rarity
+        let totalContentSql = `
+            SELECT 
+                CASE 
+                    WHEN quality_score >= 95 THEN 'mythic'
+                    WHEN quality_score >= 90 THEN 'legendary' 
+                    WHEN quality_score >= 85 THEN 'epic'
+                    WHEN quality_score >= 80 THEN 'rare'
+                    WHEN quality_score >= 75 THEN 'uncommon'
+                    ELSE 'common'
+                END as rarity_tier,
+                COUNT(*) as total_count
+            FROM content
+        `;
+
+        if (type && ['movie', 'series'].includes(type)) {
+            totalContentSql += ` WHERE type = '${type}'`;
+        }
+        
+        totalContentSql += ' GROUP BY rarity_tier';
+        
+        // Get user's unlocked counts by rarity
+        let unlockedSql = `
+            SELECT 
+                u.rarity_tier,
+                COUNT(*) as unlocked_count
+            FROM user_unlocks u
+            WHERE u.user_id = ?
+        `;
+        
+        const params = [userId];
+        
+        if (type && ['movie', 'series'].includes(type)) {
+            unlockedSql += ' AND u.spin_type = ?';
+            params.push(type);
+        }
+        
+        unlockedSql += ' GROUP BY u.rarity_tier';
+
+        const [totalCounts, unlockedCounts] = await Promise.all([
+            db.all(totalContentSql),
+            db.all(unlockedSql, params)
+        ]);
+
+        // Combine the results
+        const rarities = ['mythic', 'legendary', 'epic', 'rare', 'uncommon', 'common'];
+        const stats = rarities.map(rarity => {
+            const totalCount = totalCounts.find(t => t.rarity_tier === rarity)?.total_count || 0;
+            const unlockedCount = unlockedCounts.find(u => u.rarity_tier === rarity)?.unlocked_count || 0;
+            
+            return {
+                rarity,
+                total: totalCount,
+                unlocked: unlockedCount,
+                remaining: totalCount - unlockedCount,
+                percentage: totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0
+            };
+        });
+
+        res.json({
+            success: true,
+            stats
+        });
+
+    } catch (error) {
+        console.error('Unlock stats error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching unlock statistics'
         });
     }
 });

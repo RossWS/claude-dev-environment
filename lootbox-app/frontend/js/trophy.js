@@ -4,9 +4,12 @@ class TrophyCabinet {
         this.currentPage = 1;
         this.currentFilters = {
             type: '',
-            rarity: ''
+            rarity: '',
+            sort: 'unlock_time',
+            groupByRarity: false
         };
         this.trophies = [];
+        this.unlockStats = [];
         this.initializeElements();
         this.attachEventListeners();
     }
@@ -15,7 +18,10 @@ class TrophyCabinet {
         this.trophyGrid = document.getElementById('trophyGrid');
         this.typeFilter = document.getElementById('typeFilter');
         this.rarityFilter = document.getElementById('rarityFilter');
+        this.sortFilter = document.getElementById('sortFilter');
+        this.groupByRarityToggle = document.getElementById('groupByRarityToggle');
         this.trophyStats = document.getElementById('trophyStats');
+        this.rarityCounters = document.getElementById('rarityCounters');
         this.pagination = document.getElementById('trophyPagination');
     }
 
@@ -26,6 +32,14 @@ class TrophyCabinet {
         
         if (this.rarityFilter) {
             this.rarityFilter.addEventListener('change', () => this.applyFilters());
+        }
+
+        if (this.sortFilter) {
+            this.sortFilter.addEventListener('change', () => this.applyFilters());
+        }
+
+        if (this.groupByRarityToggle) {
+            this.groupByRarityToggle.addEventListener('change', () => this.applyFilters());
         }
 
         const backBtn = document.getElementById('backToGameBtn');
@@ -42,12 +56,14 @@ class TrophyCabinet {
                 page,
                 limit: 12,
                 type: this.currentFilters.type,
-                rarity: this.currentFilters.rarity
+                rarity: this.currentFilters.rarity,
+                sort: this.currentFilters.sort,
+                groupByRarity: this.currentFilters.groupByRarity
             };
 
             // Remove empty filters
             Object.keys(params).forEach(key => {
-                if (!params[key]) delete params[key];
+                if (!params[key] && params[key] !== false) delete params[key];
             });
 
             const response = await api.user.getTrophies(params);
@@ -58,9 +74,10 @@ class TrophyCabinet {
                 this.renderTrophies();
                 this.renderPagination(response.pagination);
                 
-                // Load stats on first load
+                // Load stats on first load or when filters change
                 if (page === 1) {
                     this.loadStats();
+                    this.loadUnlockStats();
                 }
             } else {
                 UI.showNotification(response.message || 'Failed to load trophies', 'error');
@@ -82,6 +99,23 @@ class TrophyCabinet {
             }
         } catch (error) {
             console.warn('Failed to load trophy stats:', error);
+        }
+    }
+
+    async loadUnlockStats() {
+        try {
+            const params = {};
+            if (this.currentFilters.type) {
+                params.type = this.currentFilters.type;
+            }
+
+            const response = await api.user.getUnlockStats(params);
+            if (response.success) {
+                this.unlockStats = response.stats;
+                this.renderUnlockCounters();
+            }
+        } catch (error) {
+            console.warn('Failed to load unlock stats:', error);
         }
     }
 
@@ -118,6 +152,29 @@ class TrophyCabinet {
         return legendary + mythic;
     }
 
+    renderUnlockCounters() {
+        if (!this.rarityCounters || !this.unlockStats.length) return;
+
+        const rarityIcons = {
+            mythic: '🌟',
+            legendary: '👑',
+            epic: '💎',
+            rare: '⭐',
+            uncommon: '🔹',
+            common: '⚪'
+        };
+
+        this.rarityCounters.innerHTML = this.unlockStats
+            .filter(stat => stat.total > 0) // Only show rarities that exist
+            .map(stat => `
+                <div class="rarity-counter ${stat.rarity}">
+                    <span class="rarity-icon">${rarityIcons[stat.rarity]}</span>
+                    <span class="unlock-count">${stat.unlocked}</span>
+                    <span class="total-count">/${stat.total}</span>
+                </div>
+            `).join('');
+    }
+
     renderTrophies() {
         if (!this.trophyGrid) return;
 
@@ -132,7 +189,56 @@ class TrophyCabinet {
             return;
         }
 
-        this.trophyGrid.innerHTML = this.trophies.map(trophy => this.createTrophyCard(trophy)).join('');
+        if (this.currentFilters.groupByRarity) {
+            this.renderTrophiesGrouped();
+        } else {
+            this.trophyGrid.innerHTML = this.trophies.map(trophy => this.createTrophyCard(trophy)).join('');
+        }
+    }
+
+    renderTrophiesGrouped() {
+        const rarityOrder = ['mythic', 'legendary', 'epic', 'rare', 'uncommon', 'common'];
+        const rarityIcons = {
+            mythic: '🌟',
+            legendary: '👑',
+            epic: '💎',
+            rare: '⭐',
+            uncommon: '🔹',
+            common: '⚪'
+        };
+        
+        // Group trophies by rarity
+        const groupedTrophies = {};
+        this.trophies.forEach(trophy => {
+            if (!groupedTrophies[trophy.rarity_tier]) {
+                groupedTrophies[trophy.rarity_tier] = [];
+            }
+            groupedTrophies[trophy.rarity_tier].push(trophy);
+        });
+
+        let html = '';
+        
+        // Render each rarity section
+        rarityOrder.forEach(rarity => {
+            const trophiesInRarity = groupedTrophies[rarity] || [];
+            if (trophiesInRarity.length > 0) {
+                html += `
+                    <div class=\"rarity-section\">
+                        <div class=\"rarity-section-header ${rarity}\">
+                            <span class=\"rarity-section-title\">
+                                ${rarityIcons[rarity]} ${rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+                            </span>
+                            <span class=\"rarity-section-count\">${trophiesInRarity.length} items</span>
+                        </div>
+                    </div>
+                `;
+                
+                // Add trophy cards for this rarity
+                html += trophiesInRarity.map(trophy => this.createTrophyCard(trophy)).join('');
+            }
+        });
+
+        this.trophyGrid.innerHTML = html;
     }
 
     createTrophyCard(trophy) {
@@ -234,6 +340,8 @@ class TrophyCabinet {
     applyFilters() {
         this.currentFilters.type = this.typeFilter?.value || '';
         this.currentFilters.rarity = this.rarityFilter?.value || '';
+        this.currentFilters.sort = this.sortFilter?.value || 'unlock_time';
+        this.currentFilters.groupByRarity = this.groupByRarityToggle?.checked || false;
         this.currentPage = 1;
         this.loadTrophies(1);
     }
