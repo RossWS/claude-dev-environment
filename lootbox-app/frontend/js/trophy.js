@@ -14,6 +14,17 @@ class TrophyCabinet {
         this.isLoading = false;
         this.initializeElements();
         this.attachEventListeners();
+        
+        // Listen for guest unlocks to refresh trophy cabinet
+        document.addEventListener('guestUnlockAdded', () => {
+            if (!Utils.storage.get('authToken')) {
+                // Only refresh if we're currently viewing the trophy screen
+                const trophyScreen = document.getElementById('trophyScreen');
+                if (trophyScreen && !trophyScreen.classList.contains('hidden')) {
+                    this.loadGuestTrophies();
+                }
+            }
+        });
     }
 
     initializeElements() {

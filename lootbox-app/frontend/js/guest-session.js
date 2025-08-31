@@ -130,6 +130,11 @@ class GuestSession {
                 unlockedAt: Date.now(),
                 sessionSpin: session.totalSpins
             });
+            
+            // Dispatch event to notify trophy cabinet of new unlock
+            document.dispatchEvent(new CustomEvent('guestUnlockAdded', {
+                detail: { content: content }
+            }));
 
             // Update rarity stats
             const rarity = Utils.getRarityTier(content.quality_score).tier;
