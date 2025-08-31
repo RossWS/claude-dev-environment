@@ -230,10 +230,16 @@ const RouteHandlers = {
         console.log('📍 Route: Game');
         // Initialize game if needed
         if (!window.discoveryboxGame) {
+            if (typeof DiscoveryBoxGame === 'undefined') {
+                console.error('DiscoveryBoxGame class not found');
+                return;
+            }
             window.discoveryboxGame = new DiscoveryBoxGame();
         }
-        window.discoveryboxGame.createBackgroundParticles();
-        window.discoveryboxGame.loadSpinStatus();
+        if (window.discoveryboxGame) {
+            window.discoveryboxGame.createBackgroundParticles();
+            window.discoveryboxGame.loadSpinStatus();
+        }
     },
 
     async profile() {

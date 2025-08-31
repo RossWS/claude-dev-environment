@@ -143,7 +143,9 @@ class OnboardingManager {
         }
     }
 
-    handleContentUnlock(content) {
+    handleContentUnlock(unlockDetail) {
+        const { content, unlock } = unlockDetail;
+        
         // Record the unlock in guest session
         if (guestSession) {
             guestSession.recordSpin(content);
