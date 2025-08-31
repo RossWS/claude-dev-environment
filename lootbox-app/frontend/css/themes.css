@@ -95,43 +95,137 @@
 /* Epic Rarity */
 .epic {
     --rarity-color: var(--epic);
-    --rarity-bg: rgba(46, 125, 50, 0.15);
-    --rarity-border: rgba(46, 125, 50, 0.5);
-    --rarity-glow: rgba(46, 125, 50, 0.5);
+    --rarity-bg: rgba(46, 125, 50, 0.18);
+    --rarity-border: rgba(46, 125, 50, 0.7);
+    --rarity-glow: rgba(46, 125, 50, 0.6);
+    --epic-secondary: #4CAF50;
+    --epic-accent: #66BB6A;
 }
 
 .rarity-badge.epic {
-    background: var(--rarity-bg);
+    background: linear-gradient(135deg, 
+        rgba(46, 125, 50, 0.2) 0%, 
+        rgba(76, 175, 80, 0.15) 50%,
+        rgba(46, 125, 50, 0.2) 100%);
     color: var(--rarity-color);
-    border: 1px solid var(--rarity-border);
-    font-weight: 700;
+    border: 2px solid var(--rarity-border);
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    animation: epicGlow 3s ease-in-out infinite alternate;
 }
 
 .result-card.epic {
     border-color: var(--rarity-border);
-    box-shadow: 0 0 35px var(--rarity-glow);
+    border-width: 2px;
+    box-shadow: 0 0 45px var(--rarity-glow), 0 0 20px rgba(46, 125, 50, 0.2);
     background: linear-gradient(135deg, 
         var(--card-bg) 0%, 
-        rgba(46, 125, 50, 0.05) 100%);
+        rgba(46, 125, 50, 0.08) 30%,
+        rgba(76, 175, 80, 0.05) 60%,
+        var(--card-bg) 100%);
+    position: relative;
+    overflow: hidden;
+    animation: epicCardPulse 4s ease-in-out infinite;
+}
+
+.result-card.epic .content-title {
+    background: linear-gradient(135deg, 
+        #2E7D32 0%, 
+        #4CAF50 25%,
+        #66BB6A 50%, 
+        #4CAF50 75%, 
+        #2E7D32 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    font-weight: 800;
+    animation: epicTextGlow 4s ease-in-out infinite alternate;
+}
+
+.result-card.epic::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(46, 125, 50, 0.1) 30%,
+        rgba(76, 175, 80, 0.15) 50%,
+        rgba(46, 125, 50, 0.1) 70%,
+        transparent 100%);
+    animation: epicSweep 6s linear infinite;
+    pointer-events: none;
+}
+
+.result-card.epic::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%,
+        rgba(46, 125, 50, 0.08) 0%,
+        rgba(76, 175, 80, 0.04) 40%,
+        transparent 70%);
+    animation: epicBreath 5s ease-in-out infinite;
+    pointer-events: none;
 }
 
 .quality-score.epic {
-    background: var(--rarity-bg);
+    background: linear-gradient(135deg, 
+        rgba(46, 125, 50, 0.2) 0%, 
+        rgba(76, 175, 80, 0.15) 100%);
     color: var(--rarity-color);
-    border: 1px solid var(--rarity-border);
-    font-weight: 700;
+    border: 2px solid var(--rarity-border);
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    animation: epicGlow 3s ease-in-out infinite alternate;
 }
 
 .trophy-rarity.epic {
-    background: linear-gradient(135deg, var(--rarity-color), #7B1FA2);
+    background: linear-gradient(135deg, 
+        var(--rarity-color) 0%, 
+        var(--epic-secondary) 50%, 
+        var(--epic-accent) 100%);
     color: var(--text-primary);
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .trophy-item.epic {
     border-color: var(--rarity-border);
+    border-width: 2px;
     background: linear-gradient(135deg, 
         var(--card-bg) 0%, 
-        rgba(46, 125, 50, 0.03) 100%);
+        rgba(46, 125, 50, 0.06) 40%,
+        rgba(76, 175, 80, 0.04) 70%,
+        var(--card-bg) 100%);
+    box-shadow: 0 0 25px rgba(46, 125, 50, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+
+.trophy-item.epic:hover {
+    box-shadow: 0 0 35px rgba(46, 125, 50, 0.4);
+    border-color: var(--epic-accent);
+}
+
+.trophy-item.epic::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(76, 175, 80, 0.08) 50%, 
+        transparent 100%);
+    animation: epicSlow 8s infinite;
 }
 
 /* Legendary Rarity */
@@ -498,6 +592,67 @@
     50% {
         border-color: rgba(186, 104, 200, 0.9);
         box-shadow: 0 0 40px rgba(186, 104, 200, 0.5);
+    }
+}
+
+/* Epic Animations */
+@keyframes epicGlow {
+    0% {
+        border-color: rgba(46, 125, 50, 0.7);
+        box-shadow: 0 0 8px rgba(46, 125, 50, 0.3);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    100% {
+        border-color: rgba(76, 175, 80, 0.9);
+        box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+        text-shadow: 0 0 4px rgba(76, 175, 80, 0.4);
+    }
+}
+
+@keyframes epicCardPulse {
+    0%, 100% {
+        box-shadow: 0 0 45px rgba(46, 125, 50, 0.6), 0 0 20px rgba(46, 125, 50, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 55px rgba(76, 175, 80, 0.7), 0 0 30px rgba(76, 175, 80, 0.3);
+    }
+}
+
+@keyframes epicTextGlow {
+    0% {
+        filter: brightness(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+    100% {
+        filter: brightness(1.15) drop-shadow(0 0 8px rgba(76, 175, 80, 0.4));
+    }
+}
+
+@keyframes epicSweep {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes epicBreath {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes epicSlow {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
     }
 }
 

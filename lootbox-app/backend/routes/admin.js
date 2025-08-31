@@ -223,7 +223,8 @@ router.get('/content', async (req, res) => {
                 id, type, title, critics_score, audience_score,
                 imdb_rating, year, month, duration, description,
                 certified_fresh, verified_hot, platforms, quality_score, rarity_tier, 
-                date_added, last_updated, is_active
+                date_added, last_updated, is_active,
+                COALESCE(emoji, CASE WHEN type = 'series' THEN '📺' ELSE '🎬' END) as emoji
             FROM content
         `;
         let countSql = 'SELECT COUNT(*) as total FROM content';

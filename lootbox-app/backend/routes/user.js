@@ -84,7 +84,9 @@ router.get('/trophy-cabinet', authenticateToken, async (req, res) => {
                 c.backdrop_url,
                 c.genres,
                 c.platforms,
-                c.quality_score
+                c.quality_score,
+                c.type,
+                COALESCE(c.emoji, CASE WHEN c.type = 'series' THEN '📺' ELSE '🎬' END) as emoji
             FROM user_unlocks u
             JOIN content c ON u.content_id = c.id
             WHERE u.user_id = ?
@@ -475,6 +477,360 @@ router.get('/achievements', authenticateToken, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Error fetching achievements'
+        });
+    }
+});
+
+// Update user profile (username, email)
+router.put('/profile', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { username, email } = req.body;
+
+        // Validation
+        if (!username || !email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username and email are required'
+            });
+        }
+
+        if (username.length < 3 || username.length > 20) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username must be between 3 and 20 characters'
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid email format'
+            });
+        }
+
+        // Check if username or email already exists for another user
+        const existingUser = await db.get(
+            'SELECT id FROM users WHERE (username = ? OR email = ?) AND id != ?',
+            [username, email, userId]
+        );
+
+        if (existingUser) {
+            return res.status(409).json({
+                success: false,
+                message: 'Username or email already exists'
+            });
+        }
+
+        // Update user profile
+        await db.run(
+            'UPDATE users SET username = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [username, email, userId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Profile updated successfully'
+        });
+
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating profile'
+        });
+    }
+});
+
+// Change password
+router.post('/change-password', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        // Validation
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'All password fields are required'
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'New passwords do not match'
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password must be at least 8 characters long'
+            });
+        }
+
+        // Get current user
+        const user = await db.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Verify current password
+        const bcrypt = require('bcrypt');
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isCurrentPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Current password is incorrect'
+            });
+        }
+
+        // Hash new password
+        const saltRounds = 12;
+        const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        // Update password
+        await db.run(
+            'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [hashedNewPassword, userId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error changing password'
+        });
+    }
+});
+
+// Get user's showcase cards
+router.get('/showcase', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        const showcaseCards = await db.all(`
+            SELECT 
+                s.id as showcase_id,
+                s.position,
+                u.id as unlock_id,
+                u.unlocked_at,
+                u.rarity_tier,
+                c.id,
+                c.title,
+                c.description,
+                c.critics_score,
+                c.audience_score,
+                c.year,
+                c.poster_url,
+                c.backdrop_url,
+                c.genres,
+                c.quality_score,
+                c.type,
+                COALESCE(c.emoji, CASE WHEN c.type = 'series' THEN '📺' ELSE '🎬' END) as emoji
+            FROM user_showcase s
+            JOIN user_unlocks u ON s.unlock_id = u.id
+            JOIN content c ON u.content_id = c.id
+            WHERE s.user_id = ?
+            ORDER BY s.position ASC
+        `, [userId]);
+
+        // Parse JSON fields
+        const formattedCards = showcaseCards.map(card => ({
+            ...card,
+            genres: JSON.parse(card.genres || '[]')
+        }));
+
+        res.json({
+            success: true,
+            showcase: formattedCards
+        });
+
+    } catch (error) {
+        console.error('Get showcase error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching showcase'
+        });
+    }
+});
+
+// Update user's showcase cards
+router.post('/showcase', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { unlockIds } = req.body; // Array of up to 5 unlock IDs
+
+        // Validation
+        if (!Array.isArray(unlockIds)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid showcase data'
+            });
+        }
+
+        if (unlockIds.length > 5) {
+            return res.status(400).json({
+                success: false,
+                message: 'Maximum 5 showcase items allowed'
+            });
+        }
+
+        // Verify all unlock IDs belong to the user
+        if (unlockIds.length > 0) {
+            const userUnlocks = await db.all(
+                `SELECT id FROM user_unlocks WHERE id IN (${unlockIds.map(() => '?').join(',')}) AND user_id = ?`,
+                [...unlockIds, userId]
+            );
+
+            if (userUnlocks.length !== unlockIds.length) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Some items are not in your collection'
+                });
+            }
+        }
+
+        // Clear current showcase
+        await db.run('DELETE FROM user_showcase WHERE user_id = ?', [userId]);
+
+        // Add new showcase items
+        for (let i = 0; i < unlockIds.length; i++) {
+            await db.run(
+                'INSERT INTO user_showcase (user_id, unlock_id, position) VALUES (?, ?, ?)',
+                [userId, unlockIds[i], i + 1]
+            );
+        }
+
+        res.json({
+            success: true,
+            message: 'Showcase updated successfully'
+        });
+
+    } catch (error) {
+        console.error('Update showcase error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating showcase'
+        });
+    }
+});
+
+// Get user's privacy settings
+router.get('/privacy-settings', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        const settings = await db.get(
+            'SELECT profile_public, show_stats, show_activity FROM users WHERE id = ?',
+            [userId]
+        );
+
+        res.json({
+            success: true,
+            settings: {
+                profilePublic: settings.profile_public || false,
+                showStats: settings.show_stats !== false, // Default to true
+                showActivity: settings.show_activity !== false // Default to true
+            }
+        });
+
+    } catch (error) {
+        console.error('Get privacy settings error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching privacy settings'
+        });
+    }
+});
+
+// Update user's privacy settings
+router.put('/privacy-settings', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { profilePublic, showStats, showActivity } = req.body;
+
+        // Convert to boolean values
+        const profilePublicBool = Boolean(profilePublic);
+        const showStatsBool = Boolean(showStats);
+        const showActivityBool = Boolean(showActivity);
+
+        await db.run(
+            'UPDATE users SET profile_public = ?, show_stats = ?, show_activity = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            [profilePublicBool, showStatsBool, showActivityBool, userId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Privacy settings updated successfully'
+        });
+
+    } catch (error) {
+        console.error('Update privacy settings error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating privacy settings'
+        });
+    }
+});
+
+// Delete user account
+router.delete('/account', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const { password } = req.body;
+
+        if (!password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password confirmation required'
+            });
+        }
+
+        // Get user and verify password
+        const user = await db.getUserById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        const bcrypt = require('bcrypt');
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password is incorrect'
+            });
+        }
+
+        // Delete user data (cascade delete through foreign keys)
+        await db.run('DELETE FROM user_showcase WHERE user_id = ?', [userId]);
+        await db.run('DELETE FROM user_unlocks WHERE user_id = ?', [userId]);
+        await db.run('DELETE FROM user_spins WHERE user_id = ?', [userId]);
+        await db.run('DELETE FROM users WHERE id = ?', [userId]);
+
+        res.json({
+            success: true,
+            message: 'Account deleted successfully'
+        });
+
+    } catch (error) {
+        console.error('Delete account error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error deleting account'
         });
     }
 });

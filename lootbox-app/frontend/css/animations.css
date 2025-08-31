@@ -6,9 +6,9 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     pointer-events: none;
-    overflow: hidden;
+    overflow: visible;
     z-index: 1;
 }
 
@@ -104,7 +104,8 @@
 }
 
 .rarity-glow-epic {
-    box-shadow: 0 0 60px rgba(46, 125, 50, 0.6);
+    box-shadow: 0 0 60px rgba(46, 125, 50, 0.6), 0 0 30px rgba(76, 175, 80, 0.4);
+    animation: epicPulse 3s ease-in-out infinite;
 }
 
 .rarity-glow-legendary {
@@ -125,6 +126,17 @@
     50% {
         box-shadow: 0 0 120px rgba(255, 215, 0, 1);
         transform: scale(1.05);
+    }
+}
+
+@keyframes epicPulse {
+    0%, 100% {
+        box-shadow: 0 0 60px rgba(46, 125, 50, 0.6), 0 0 30px rgba(76, 175, 80, 0.4);
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 0 80px rgba(76, 175, 80, 0.8), 0 0 40px rgba(102, 187, 106, 0.6);
+        transform: scale(1.02);
     }
 }
 
@@ -149,8 +161,9 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100vh;
     pointer-events: none;
+    overflow: visible;
     z-index: 50;
 }
 
@@ -364,6 +377,22 @@
 .rarity-badge {
     position: relative;
     overflow: hidden;
+}
+
+.rarity-badge.epic {
+    position: relative;
+    overflow: hidden;
+}
+
+.rarity-badge.epic::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.3), transparent);
+    animation: shimmer 2.5s infinite;
 }
 
 .rarity-badge.legendary::after {

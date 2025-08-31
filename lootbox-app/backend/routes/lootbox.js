@@ -29,6 +29,66 @@ function getRarity(score) {
     return { tier: 'common', label: 'COMMON', icon: '⚪' };
 }
 
+// Guest lootbox endpoint (no authentication required)
+router.post('/guest-open', async (req, res) => {
+    try {
+        const { type } = req.body; // 'movie' or 'series'
+
+        // Validate type
+        if (!type || !['movie', 'series'].includes(type)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid lootbox type. Must be "movie" or "series"'
+            });
+        }
+
+        // Get random content of the specified type
+        const query = `
+            SELECT * FROM content 
+            WHERE type = ? AND is_active = 1
+            ORDER BY RANDOM() 
+            LIMIT 1
+        `;
+        
+        const content = await db.get(query, [type]);
+        
+        if (!content) {
+            return res.status(404).json({
+                success: false,
+                message: `No ${type}s available`
+            });
+        }
+
+        // Calculate quality score and rarity
+        const qualityScore = calculateQualityScore(content);
+        const rarity = getRarity(qualityScore);
+        
+        // Prepare content object
+        const contentWithMetrics = {
+            ...content,
+            quality_score: qualityScore,
+            rarity: rarity,
+            rarity_tier: rarity.tier
+        };
+
+        res.json({
+            success: true,
+            content: contentWithMetrics,
+            unlock: {
+                is_new: true, // For guests, everything is "new"
+                unlock_time: new Date().toISOString()
+            }
+        });
+
+    } catch (error) {
+        console.error('Guest lootbox error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+});
+
 // Open lootbox endpoint
 router.post('/open', authenticateToken, async (req, res) => {
     try {

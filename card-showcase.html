@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collectible Movie Cards - Showcase</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="lootbox-app/frontend/css/base.css">
+    <link rel="stylesheet" href="lootbox-app/frontend/css/animations.css">
+    <link rel="stylesheet" href="lootbox-app/frontend/css/themes.css">
+    
+    <style>
+        /* Trading Card Game Inspired Design */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .showcase-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .showcase-title {
+            font-size: 3rem;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .showcase-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 3rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        /* Collectible Movie Card */
+        .movie-card {
+            width: 320px;
+            height: 450px;
+            position: relative;
+            margin: 0 auto;
+            perspective: 1000px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-10px) scale(1.02);
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            background: linear-gradient(145deg, #1e1e2e, #2d2d42);
+            border: 3px solid;
+            box-shadow: 
+                0 15px 35px rgba(0,0,0,0.4),
+                0 5px 15px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .movie-card:hover .card-inner {
+            box-shadow: 
+                0 25px 50px rgba(0,0,0,0.5),
+                0 10px 25px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                0 0 30px rgba(255,215,0,0.3);
+        }
+
+        /* Rarity-specific styling */
+        .movie-card.mythic .card-inner {
+            border-color: #ff00ff;
+            background: linear-gradient(145deg, #2a1a2e, #3d2a42);
+        }
+        .movie-card.mythic::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #ff00ff, #8a2be2, #ff1493, #ff00ff);
+            border-radius: 20px;
+            z-index: -1;
+            animation: mythic-glow 3s ease-in-out infinite alternate;
+        }
+
+        .movie-card.legendary .card-inner {
+            border-color: #ffd700;
+            background: linear-gradient(145deg, #2e2a1a, #423d2a);
+        }
+        .movie-card.legendary::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #ffd700, #ffb347, #ffd700);
+            border-radius: 20px;
+            z-index: -1;
+            animation: legendary-pulse 2s ease-in-out infinite alternate;
+        }
+
+        .movie-card.epic .card-inner {
+            border-color: #2e7d32;
+            background: linear-gradient(145deg, #1a2e1a, #2a422a);
+        }
+
+        .movie-card.rare .card-inner {
+            border-color: #2196f3;
+            background: linear-gradient(145deg, #1a1e2e, #2a2d42);
+        }
+
+        .movie-card.uncommon .card-inner {
+            border-color: #4caf50;
+            background: linear-gradient(145deg, #1a2e1e, #2a422d);
+        }
+
+        .movie-card.common .card-inner {
+            border-color: #999999;
+            background: linear-gradient(145deg, #1e1e1e, #2d2d2d);
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 12px 16px 8px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            max-width: 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-cost {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: white;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Card Art Section */
+        .card-art {
+            height: 180px;
+            background: linear-gradient(135deg, #434343 0%, #000000 100%);
+            margin: 0 12px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-art::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        /* Card Type Badge */
+        .card-type {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Stats Section */
+        .card-stats {
+            padding: 12px 16px 8px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 0.8rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        .quality-score {
+            font-size: 1.2rem !important;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Rarity Gem */
+        .rarity-gem {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 900;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+        }
+
+        .movie-card.mythic .rarity-gem { background: radial-gradient(circle, #ff00ff, #8a2be2); }
+        .movie-card.legendary .rarity-gem { background: radial-gradient(circle, #ffd700, #ff8c00); }
+        .movie-card.epic .rarity-gem { background: radial-gradient(circle, #2e7d32, #4caf50); }
+        .movie-card.rare .rarity-gem { background: radial-gradient(circle, #2196f3, #64b5f6); }
+        .movie-card.uncommon .rarity-gem { background: radial-gradient(circle, #4caf50, #81c784); }
+        .movie-card.common .rarity-gem { background: radial-gradient(circle, #999999, #bdbdbd); }
+
+        /* Card Description */
+        .card-description {
+            padding: 8px 16px 12px;
+            height: 60px;
+            overflow: hidden;
+        }
+
+        .description-text {
+            font-size: 0.75rem;
+            line-height: 1.3;
+            color: rgba(255,255,255,0.85);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Card Footer */
+        .card-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-year {
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+        }
+
+        .card-rarity {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+        }
+
+        .movie-card.mythic .card-rarity { background: rgba(255,0,255,0.3); color: #ff00ff; }
+        .movie-card.legendary .card-rarity { background: rgba(255,215,0,0.3); color: #ffd700; }
+        .movie-card.epic .card-rarity { background: rgba(46,125,50,0.3); color: #4caf50; }
+        .movie-card.rare .card-rarity { background: rgba(33,150,243,0.3); color: #2196f3; }
+        .movie-card.uncommon .card-rarity { background: rgba(76,175,80,0.3); color: #4caf50; }
+        .movie-card.common .card-rarity { background: rgba(153,153,153,0.3); color: #999999; }
+
+        /* Animations */
+        @keyframes mythic-glow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes legendary-pulse {
+            0% { box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            100% { box-shadow: 0 0 30px rgba(255,215,0,0.8); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Holographic effect for high rarity cards */
+        .movie-card.mythic .card-art::after,
+        .movie-card.legendary .card-art::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, 
+                transparent 20%, 
+                rgba(255,255,255,0.1) 40%, 
+                rgba(255,255,255,0.3) 50%, 
+                rgba(255,255,255,0.1) 60%, 
+                transparent 80%);
+            animation: holographic 4s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes holographic {
+            0%, 100% { transform: translateX(-100%) rotate(45deg); }
+            50% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
+            }
+            
+            .movie-card {
+                width: 280px;
+                height: 400px;
+            }
+            
+            .showcase-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="showcase-container">
+        <h1 class="showcase-title">Collectible Movie Cards</h1>
+        <p class="showcase-subtitle">Premium trading card design inspired by collectible card games</p>
+        
+        <div class="cards-grid">
+            <!-- Mythic Card Example -->
+            <div class="movie-card mythic">
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-title">The Dark Knight</div>
+                        <div class="card-cost">95</div>
+                    </div>
+                    
+                    <div class="card-art">
+                        <div class="card-type">🎬 Movie</div>
+                        <div class="rarity-gem">🌟</div>
+                        🦇
+                    </div>
+                    
+                    <div class="card-stats">
+                        <div class="stats-row">
+                            <span class="stat-label">Quality Score</span>
+                            <span class="stat-value quality-score">95</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Critics</span>
+                            <span class="stat-value">94%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Audience</span>
+                            <span class="stat-value">94%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Runtime</span>
+                            <span class="stat-value">152m</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-description">
+                        <div class="description-text">
+                            When the menace known as The Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-year">2008</div>
+                        <div class="card-rarity">Mythic</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legendary Card Example -->
+            <div class="movie-card legendary">
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-title">Pulp Fiction</div>
+                        <div class="card-cost">92</div>
+                    </div>
+                    
+                    <div class="card-art">
+                        <div class="card-type">🎬 Movie</div>
+                        <div class="rarity-gem">👑</div>
+                        🕴️
+                    </div>
+                    
+                    <div class="card-stats">
+                        <div class="stats-row">
+                            <span class="stat-label">Quality Score</span>
+                            <span class="stat-value quality-score">92</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Critics</span>
+                            <span class="stat-value">92%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Audience</span>
+                            <span class="stat-value">96%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Runtime</span>
+                            <span class="stat-value">154m</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-description">
+                        <div class="description-text">
+                            The lives of two mob hitmen, a boxer, a gangster and his wife intertwine in four tales of violence and redemption in Tarantino's groundbreaking masterpiece.
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-year">1994</div>
+                        <div class="card-rarity">Legendary</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Epic Card Example -->
+            <div class="movie-card epic">
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-title">Mad Max: Fury Road</div>
+                        <div class="card-cost">88</div>
+                    </div>
+                    
+                    <div class="card-art">
+                        <div class="card-type">🎬 Movie</div>
+                        <div class="rarity-gem">💎</div>
+                        🏎️
+                    </div>
+                    
+                    <div class="card-stats">
+                        <div class="stats-row">
+                            <span class="stat-label">Quality Score</span>
+                            <span class="stat-value quality-score">88</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Critics</span>
+                            <span class="stat-value">97%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Audience</span>
+                            <span class="stat-value">86%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Runtime</span>
+                            <span class="stat-value">120m</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-description">
+                        <div class="description-text">
+                            In a post-apocalyptic wasteland, Max teams up with a mysterious woman to flee from a tyrannical warlord in search of their freedom in this visual masterpiece.
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-year">2015</div>
+                        <div class="card-rarity">Epic</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rare Card Example -->
+            <div class="movie-card rare">
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-title">John Wick</div>
+                        <div class="card-cost">82</div>
+                    </div>
+                    
+                    <div class="card-art">
+                        <div class="card-type">🎬 Movie</div>
+                        <div class="rarity-gem">⭐</div>
+                        🔫
+                    </div>
+                    
+                    <div class="card-stats">
+                        <div class="stats-row">
+                            <span class="stat-label">Quality Score</span>
+                            <span class="stat-value quality-score">82</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Critics</span>
+                            <span class="stat-value">86%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Audience</span>
+                            <span class="stat-value">86%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Runtime</span>
+                            <span class="stat-value">101m</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-description">
+                        <div class="description-text">
+                            An ex-hit-man comes out of retirement to track down the gangsters that took everything from him. Stylish action and world-building that redefined the genre.
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-year">2014</div>
+                        <div class="card-rarity">Rare</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TV Series Example -->
+            <div class="movie-card legendary">
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-title">Breaking Bad</div>
+                        <div class="card-cost">96</div>
+                    </div>
+                    
+                    <div class="card-art">
+                        <div class="card-type">📺 Series</div>
+                        <div class="rarity-gem">👑</div>
+                        ⚗️
+                    </div>
+                    
+                    <div class="card-stats">
+                        <div class="stats-row">
+                            <span class="stat-label">Quality Score</span>
+                            <span class="stat-value quality-score">96</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Critics</span>
+                            <span class="stat-value">96%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Audience</span>
+                            <span class="stat-value">96%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Seasons</span>
+                            <span class="stat-value">5</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-description">
+                        <div class="description-text">
+                            A high school chemistry teacher turned methamphetamine manufacturer partners with a former student to create the purest product on the market in this acclaimed drama series.
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-year">2008-2013</div>
+                        <div class="card-rarity">Legendary</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Card Example -->
+            <div class="movie-card common">
+                <div class="card-inner">
+                    <div class="card-header">
+                        <div class="card-title">The Avengers</div>
+                        <div class="card-cost">72</div>
+                    </div>
+                    
+                    <div class="card-art">
+                        <div class="card-type">🎬 Movie</div>
+                        <div class="rarity-gem">⚪</div>
+                        🦸‍♂️
+                    </div>
+                    
+                    <div class="card-stats">
+                        <div class="stats-row">
+                            <span class="stat-label">Quality Score</span>
+                            <span class="stat-value quality-score">72</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Critics</span>
+                            <span class="stat-value">91%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Audience</span>
+                            <span class="stat-value">91%</span>
+                        </div>
+                        <div class="stats-row">
+                            <span class="stat-label">Runtime</span>
+                            <span class="stat-value">143m</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-description">
+                        <div class="description-text">
+                            Earth's mightiest heroes must come together and learn to fight as a team to stop the mischievous Loki and his alien army from enslaving humanity.
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <div class="card-year">2012</div>
+                        <div class="card-rarity">Common</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="color: white; margin-top: 2rem; padding: 2rem; background: rgba(0,0,0,0.3); border-radius: 12px;">
+            <h2 style="margin-bottom: 1rem;">Design Features</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; text-align: left;">
+                <div>
+                    <h3>🎨 Visual Elements</h3>
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        <li>Rarity-based color schemes and borders</li>
+                        <li>Holographic effects for high-tier cards</li>
+                        <li>Premium card frame with depth and shadows</li>
+                        <li>Animated glowing effects for Mythic/Legendary</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>📊 Card Information</h3>
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        <li>Quality Score prominently displayed</li>
+                        <li>Critics and Audience ratings</li>
+                        <li>Runtime/Season information</li>
+                        <li>Release year and content type</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>✨ Collectible Feel</h3>
+                    <ul style="margin: 0; padding-left: 1.5rem;">
+                        <li>Rarity gems and tier indicators</li>
+                        <li>TCG-inspired layout and typography</li>
+                        <li>Hover animations and interactions</li>
+                        <li>Premium foil and shimmer effects</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

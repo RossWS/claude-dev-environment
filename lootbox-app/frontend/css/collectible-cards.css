@@ -1,0 +1,728 @@
+/* ===== COLLECTIBLE TRADING CARD DESIGN ===== */
+
+/* Unlock Status Banner */
+.unlock-status-banner {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: banner-appear 0.6s ease-out;
+}
+
+.unlock-status-banner.new-unlock {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: white;
+    border: 2px solid #4caf50;
+    box-shadow: 0 4px 15px rgba(76,175,80,0.4);
+}
+
+.unlock-status-banner.duplicate {
+    background: linear-gradient(135deg, #757575, #9e9e9e);
+    color: white;
+    border: 2px solid #757575;
+    box-shadow: 0 4px 15px rgba(117,117,117,0.3);
+}
+
+@keyframes banner-appear {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Base Collectible Card Styles */
+.collectible-card {
+    width: 320px;
+    height: 450px;
+    position: relative;
+    margin: 0 auto;
+    perspective: 1000px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+/* Extra margin for mythic cards to prevent overflow */
+.collectible-card.mythic {
+    margin: 10px auto;
+}
+
+.collectible-card.small.mythic {
+    margin: 8px auto;
+}
+
+.collectible-card.mini.mythic {
+    margin: 6px auto;
+}
+
+.collectible-card:hover {
+    transform: translateY(-4px) scale(1.01);
+}
+
+.collectible-card.small {
+    width: 240px;
+    height: 340px;
+}
+
+.collectible-card.mini {
+    width: 180px;
+    height: 250px;
+}
+
+.collectible-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #1e1e2e, #2d2d42);
+    border: 3px solid;
+    box-shadow: 
+        0 10px 25px rgba(0,0,0,0.3),
+        0 3px 10px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.collectible-card:hover .collectible-card-inner {
+    box-shadow: 
+        0 15px 35px rgba(0,0,0,0.4),
+        0 5px 15px rgba(0,0,0,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+/* Rarity-Specific Card Styling */
+.collectible-card.mythic .collectible-card-inner {
+    border-color: #ff00ff;
+    background: linear-gradient(145deg, #2a1a2e, #3d2a42);
+}
+
+.collectible-card.mythic::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, #ff00ff, #8a2be2, #ff1493, #ff00ff);
+    border-radius: 20px;
+    z-index: -1;
+    animation: mythic-glow 4s ease-in-out infinite;
+}
+
+/* Subtle mythic animation for collection views */
+.collectible-card.mythic.subtle::before {
+    animation: mythic-subtle 3s ease-in-out infinite;
+}
+
+.collectible-card.legendary .collectible-card-inner {
+    border-color: #ffd700;
+    background: linear-gradient(145deg, #2e2a1a, #423d2a);
+}
+
+.collectible-card.legendary::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, #ffd700, #ffb347, #ffd700);
+    border-radius: 20px;
+    z-index: -1;
+    animation: legendary-pulse 3s ease-in-out infinite alternate;
+}
+
+.collectible-card.epic .collectible-card-inner {
+    border-color: #2e7d32;
+    background: linear-gradient(145deg, #1a2e1a, #2a422a);
+}
+
+.collectible-card.rare .collectible-card-inner {
+    border-color: #2196f3;
+    background: linear-gradient(145deg, #1a1e2e, #2a2d42);
+}
+
+.collectible-card.uncommon .collectible-card-inner {
+    border-color: #4caf50;
+    background: linear-gradient(145deg, #1a2e1e, #2a422d);
+}
+
+.collectible-card.common .collectible-card-inner {
+    border-color: #999999;
+    background: linear-gradient(145deg, #1e1e1e, #2d2d2d);
+}
+
+/* Subtle versions for trophy cabinet */
+.collectible-card.subtle.mythic::before { 
+    opacity: 0.3; 
+    animation: mythic-subtle 3s ease-in-out infinite;
+}
+.collectible-card.subtle.legendary::before { 
+    opacity: 0.4; 
+    animation: legendary-subtle 4s ease-in-out infinite;
+}
+.collectible-card.subtle:hover.mythic::before { opacity: 0.5; }
+.collectible-card.subtle:hover.legendary::before { opacity: 0.6; }
+
+/* Card Header */
+.collectible-card-header {
+    padding: 12px 16px 8px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.collectible-card.small .collectible-card-header,
+.collectible-card.mini .collectible-card-header {
+    padding: 8px 12px 6px;
+}
+
+.collectible-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    max-width: 180px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-wrap: break-word;
+    hyphens: auto;
+    letter-spacing: 0.5px;
+    text-transform: none;
+}
+
+.collectible-card.small .collectible-card-title {
+    font-size: 0.95rem;
+    max-width: 140px;
+}
+
+.collectible-card.mini .collectible-card-title {
+    font-size: 0.8rem;
+    max-width: 100px;
+}
+
+.collectible-card-cost {
+    background: rgba(255,255,255,0.2);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: white;
+    font-size: 0.9rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.collectible-card.small .collectible-card-cost {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+}
+
+.collectible-card.mini .collectible-card-cost {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65rem;
+}
+
+/* Card Art Section */
+.collectible-card-art {
+    height: 180px;
+    background: linear-gradient(135deg, #434343 0%, #000000 100%);
+    margin: 0 12px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    position: relative;
+    overflow: hidden;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+}
+
+.collectible-card.small .collectible-card-art {
+    height: 135px;
+    margin: 0 8px;
+    font-size: 3.5rem;
+}
+
+.collectible-card.mini .collectible-card-art {
+    height: 100px;
+    margin: 0 6px;
+    font-size: 2.8rem;
+}
+
+.collectible-card-art::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 70%, rgba(255,255,255,0.1) 0%, transparent 40%),
+        linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%);
+    animation: shimmer 6s infinite;
+}
+
+/* Enhanced background for different content types */
+.collectible-card[data-type="movie"] .collectible-card-art {
+    background: linear-gradient(135deg, #2c1810 0%, #1a0f08 40%, #000000 100%);
+}
+
+.collectible-card[data-type="series"] .collectible-card-art {
+    background: linear-gradient(135deg, #1a2332 0%, #0f1419 40%, #000000 100%);
+}
+
+/* Add a subtle film strip pattern for movies */
+.collectible-card[data-type="movie"] .collectible-card-art::after {
+    content: '';
+    position: absolute;
+    top: 5px; bottom: 5px;
+    left: 5px; right: 5px;
+    border: 1px dashed rgba(255,255,255,0.1);
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+/* Add a subtle TV screen pattern for series */
+.collectible-card[data-type="series"] .collectible-card-art::after {
+    content: '';
+    position: absolute;
+    top: 8px; bottom: 8px;
+    left: 8px; right: 8px;
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+/* Card Type Badge */
+.collectible-card-type {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.collectible-card.small .collectible-card-type,
+.collectible-card.mini .collectible-card-type {
+    font-size: 0.6rem;
+    padding: 3px 6px;
+}
+
+/* Rarity Gem */
+.collectible-rarity-gem {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+
+.collectible-card.small .collectible-rarity-gem {
+    width: 16px;
+    height: 16px;
+    font-size: 0.7rem;
+}
+
+.collectible-card.mini .collectible-rarity-gem {
+    width: 14px;
+    height: 14px;
+    font-size: 0.6rem;
+}
+
+.collectible-card.mythic .collectible-rarity-gem { background: radial-gradient(circle, #ff00ff, #8a2be2); }
+.collectible-card.legendary .collectible-rarity-gem { background: radial-gradient(circle, #ffd700, #ff8c00); }
+.collectible-card.epic .collectible-rarity-gem { background: radial-gradient(circle, #2e7d32, #4caf50); }
+.collectible-card.rare .collectible-rarity-gem { background: radial-gradient(circle, #2196f3, #64b5f6); }
+.collectible-card.uncommon .collectible-rarity-gem { background: radial-gradient(circle, #4caf50, #81c784); }
+.collectible-card.common .collectible-rarity-gem { background: radial-gradient(circle, #999999, #bdbdbd); }
+
+/* Stats Section */
+.collectible-card-stats {
+    padding: 12px 16px 8px;
+    background: rgba(0,0,0,0.3);
+}
+
+.collectible-card.small .collectible-card-stats,
+.collectible-card.mini .collectible-card-stats {
+    padding: 8px 12px 6px;
+}
+
+.collectible-stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.collectible-stats-row:last-child {
+    margin-bottom: 0;
+}
+
+.collectible-stat-label {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.collectible-card.mini .collectible-stat-label {
+    font-size: 0.6rem;
+}
+
+.collectible-stat-value {
+    font-size: 0.8rem;
+    color: white;
+    font-weight: 700;
+}
+
+.collectible-card.mini .collectible-stat-value {
+    font-size: 0.7rem;
+}
+
+.collectible-quality-score {
+    font-size: 1.2rem !important;
+    color: #ffd700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.collectible-card.small .collectible-quality-score {
+    font-size: 1rem !important;
+}
+
+.collectible-card.mini .collectible-quality-score {
+    font-size: 0.9rem !important;
+}
+
+/* Card Description */
+.collectible-card-description {
+    padding: 8px 16px 12px;
+    flex: 1;
+    min-height: 60px;
+    max-height: 120px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.2) 100%);
+    border-top: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.collectible-card.small .collectible-card-description {
+    padding: 6px 12px 8px;
+    min-height: 45px;
+    max-height: 90px;
+}
+
+.collectible-card.mini .collectible-card-description {
+    padding: 4px 8px 6px;
+    min-height: 35px;
+    max-height: 70px;
+}
+
+.collectible-description-text {
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: rgba(255,255,255,0.9);
+    flex: 1;
+    overflow: hidden;
+    word-wrap: break-word;
+    hyphens: auto;
+    letter-spacing: 0.2px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: unset;
+}
+
+.collectible-card.small .collectible-description-text {
+    font-size: 0.66rem;
+    line-height: 1.35;
+}
+
+.collectible-card.mini .collectible-description-text {
+    font-size: 0.62rem;
+    line-height: 1.3;
+}
+
+/* Card Footer */
+.collectible-card-footer {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.collectible-card.small .collectible-card-footer,
+.collectible-card.mini .collectible-card-footer {
+    padding: 6px 12px;
+}
+
+.collectible-card-year {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+}
+
+.collectible-card.mini .collectible-card-year {
+    font-size: 0.6rem;
+}
+
+.collectible-card-rarity {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+
+.collectible-card.mini .collectible-card-rarity {
+    font-size: 0.55rem;
+    padding: 1px 4px;
+}
+
+.collectible-card.mythic .collectible-card-rarity { background: rgba(255,0,255,0.3); color: #ff00ff; }
+.collectible-card.legendary .collectible-card-rarity { background: rgba(255,215,0,0.3); color: #ffd700; }
+.collectible-card.epic .collectible-card-rarity { background: rgba(46,125,50,0.3); color: #4caf50; }
+.collectible-card.rare .collectible-card-rarity { background: rgba(33,150,243,0.3); color: #2196f3; }
+.collectible-card.uncommon .collectible-card-rarity { background: rgba(76,175,80,0.3); color: #4caf50; }
+.collectible-card.common .collectible-card-rarity { background: rgba(153,153,153,0.3); color: #999999; }
+
+/* Special Effects */
+.collectible-card.mythic .collectible-card-art::after,
+.collectible-card.legendary .collectible-card-art::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, 
+        transparent 20%, 
+        rgba(255,255,255,0.1) 40%, 
+        rgba(255,255,255,0.3) 50%, 
+        rgba(255,255,255,0.1) 60%, 
+        transparent 80%);
+    animation: holographic 5s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Subtle holographic for trophy cabinet */
+.collectible-card.subtle.mythic .collectible-card-art::after,
+.collectible-card.subtle.legendary .collectible-card-art::after {
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255,255,255,0.05) 45%, 
+        rgba(255,255,255,0.15) 50%, 
+        rgba(255,255,255,0.05) 55%, 
+        transparent 70%);
+    animation-duration: 8s;
+}
+
+/* Unlock Animation - Enhanced effects for the result screen */
+.collectible-card.unlock-animation {
+    animation: card-unlock 2s ease-out;
+}
+
+.collectible-card.mythic.unlock-animation::before {
+    animation: mythic-unlock 2s ease-out;
+}
+
+.collectible-card.legendary.unlock-animation::before {
+    animation: legendary-unlock 2s ease-out;
+}
+
+.collectible-card.unlock-animation .collectible-card-art::after {
+    animation: holographic-unlock 2s ease-out;
+}
+
+/* Trophy unlock timestamp */
+.collectible-card-unlock-time {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.6));
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+}
+
+.collectible-card.small .collectible-card-unlock-time {
+    padding: 4px 8px;
+    font-size: 0.6rem;
+    gap: 4px;
+}
+
+.collectible-card.mini .collectible-card-unlock-time {
+    padding: 3px 6px;
+    font-size: 0.55rem;
+    gap: 3px;
+}
+
+.unlock-icon {
+    opacity: 0.7;
+    font-size: 0.9em;
+}
+
+.unlock-text {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Animations */
+@keyframes mythic-glow {
+    0% { transform: rotate(0deg); opacity: 0.6; }
+    50% { opacity: 0.8; }
+    100% { transform: rotate(360deg); opacity: 0.6; }
+}
+
+@keyframes mythic-subtle {
+    0% { transform: rotate(-2deg) scale(1); opacity: 0.4; }
+    25% { transform: rotate(1deg) scale(1.02); opacity: 0.6; }
+    50% { transform: rotate(-1deg) scale(1); opacity: 0.5; }
+    75% { transform: rotate(2deg) scale(1.01); opacity: 0.6; }
+    100% { transform: rotate(-2deg) scale(1); opacity: 0.4; }
+}
+
+@keyframes legendary-subtle {
+    0% { transform: rotate(-1deg) scale(1); opacity: 0.3; }
+    33% { transform: rotate(0.5deg) scale(1.01); opacity: 0.5; }
+    66% { transform: rotate(-0.5deg) scale(1); opacity: 0.4; }
+    100% { transform: rotate(-1deg) scale(1); opacity: 0.3; }
+}
+
+@keyframes legendary-pulse {
+    0% { box-shadow: 0 0 20px rgba(255,215,0,0.4); }
+    100% { box-shadow: 0 0 35px rgba(255,215,0,0.7); }
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes holographic {
+    0%, 100% { transform: translateX(-100%) rotate(45deg); opacity: 0.3; }
+    50% { transform: translateX(100%) rotate(45deg); opacity: 0.6; }
+}
+
+@keyframes card-unlock {
+    0% { 
+        transform: scale(0.8) rotateY(-15deg);
+        opacity: 0;
+    }
+    30% {
+        transform: scale(1.1) rotateY(5deg);
+        opacity: 0.8;
+    }
+    60% {
+        transform: scale(0.95) rotateY(-2deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes mythic-unlock {
+    0% { 
+        opacity: 0;
+        transform: rotate(0deg) scale(1.2);
+        box-shadow: 0 0 0px rgba(255,0,255,0);
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 60px rgba(255,0,255,0.8);
+    }
+    100% {
+        opacity: 0.6;
+        transform: rotate(360deg) scale(1);
+        box-shadow: 0 0 30px rgba(255,0,255,0.4);
+    }
+}
+
+@keyframes legendary-unlock {
+    0% { 
+        opacity: 0;
+        box-shadow: 0 0 0px rgba(255,215,0,0);
+    }
+    30% {
+        opacity: 1;
+        box-shadow: 0 0 80px rgba(255,215,0,1);
+    }
+    100% {
+        opacity: 0.7;
+        box-shadow: 0 0 35px rgba(255,215,0,0.7);
+    }
+}
+
+@keyframes holographic-unlock {
+    0% { 
+        transform: translateX(-200%) rotate(45deg);
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+        background: linear-gradient(45deg, 
+            transparent 10%, 
+            rgba(255,255,255,0.6) 30%, 
+            rgba(255,255,255,0.9) 50%, 
+            rgba(255,255,255,0.6) 70%, 
+            transparent 90%);
+    }
+    100% {
+        transform: translateX(200%) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .collectible-card {
+        width: 280px;
+        height: 390px;
+    }
+    
+    .collectible-card.small {
+        width: 220px;
+        height: 310px;
+    }
+    
+    .collectible-card.mini {
+        width: 160px;
+        height: 220px;
+    }
+}

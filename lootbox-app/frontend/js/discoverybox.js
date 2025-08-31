@@ -106,6 +106,13 @@ class DiscoveryBoxGame {
         this.populateResultCard(content, unlock);
         this.createBurstEffect(content.rarity.tier);
         
+        // Adjust card description to fit content
+        setTimeout(() => {
+            if (UI && UI.adjustCardDescriptions) {
+                UI.adjustCardDescriptions();
+            }
+        }, 100);
+        
         // Update spin status
         this.updateSpinStatus(spins);
 
@@ -118,53 +125,88 @@ class DiscoveryBoxGame {
     }
 
     populateResultCard(content, unlock) {
-        const resultCard = document.getElementById('resultCard');
+        const collectibleCard = document.getElementById('resultCollectibleCard');
+        const unlockBanner = document.getElementById('unlockStatusBanner');
         
         // Clear previous rarity classes and add new one
-        resultCard.className = 'result-card';
-        resultCard.classList.add(content.rarity.tier);
+        collectibleCard.className = 'collectible-card unlock-animation';
+        collectibleCard.classList.add(content.rarity.tier);
+        collectibleCard.setAttribute('data-type', this.currentType);
 
-        // Update content badge
-        const contentBadge = document.getElementById('contentBadge');
-        if (contentBadge) {
-            contentBadge.textContent = this.currentType.toUpperCase();
-            contentBadge.classList.add(this.currentType);
-        }
-
-        // Update rarity badge
-        const rarityBadge = document.getElementById('rarityBadge');
-        if (rarityBadge) {
-            rarityBadge.innerHTML = `${content.rarity.icon} ${content.rarity.label}`;
-            rarityBadge.className = 'rarity-badge';
-            rarityBadge.classList.add(content.rarity.tier);
-        }
-
-        // Update unlock status
-        const unlockStatus = document.getElementById('unlockStatus');
-        if (unlockStatus) {
+        // Update unlock status banner
+        if (unlockBanner) {
             if (unlock.wasNewUnlock) {
-                unlockStatus.textContent = '🎉 NEW UNLOCK!';
-                unlockStatus.className = 'unlock-status';
+                unlockBanner.textContent = '🎉 NEW UNLOCK!';
+                unlockBanner.className = 'unlock-status-banner new-unlock';
             } else {
-                unlockStatus.textContent = '📚 Already Owned';
-                unlockStatus.className = 'unlock-status duplicate';
+                unlockBanner.textContent = '📚 Already Owned';
+                unlockBanner.className = 'unlock-status-banner duplicate';
             }
         }
 
-        // Update content details
-        document.getElementById('contentTitle').textContent = content.title;
-        document.getElementById('contentRating').textContent = 
-            `Critics: ${content.critics_score}% | Audience: ${content.audience_score}%`;
+        // Update collectible card elements
+        document.getElementById('collectibleCardTitle').textContent = content.title;
+        document.getElementById('collectibleCardCost').textContent = content.qualityScore;
         
-        const qualityScore = document.getElementById('qualityScore');
-        qualityScore.innerHTML = `${content.rarity.icon} Score: ${content.qualityScore}`;
-        qualityScore.className = 'quality-score';
-        qualityScore.classList.add(content.rarity.tier);
+        // Set content type and icon
+        const cardType = document.getElementById('collectibleCardType');
+        const cardIcon = document.getElementById('collectibleCardIcon');
+        const contentEmoji = content.emoji || (this.currentType === 'series' ? '📺' : '🎬');
+        
+        if (this.currentType === 'series') {
+            cardType.textContent = '📺 Series';
+            cardIcon.textContent = contentEmoji;
+        } else {
+            cardType.textContent = '🎬 Movie';
+            cardIcon.textContent = contentEmoji;
+        }
 
-        document.getElementById('contentYear').textContent = content.year;
-        document.getElementById('contentDuration').textContent = content.duration;
-        document.getElementById('releaseInfo').textContent = `${content.month} ${content.year}`;
-        document.getElementById('contentDescription').textContent = content.description;
+        // Set rarity gem
+        document.getElementById('collectibleRarityGem').textContent = content.rarity.icon;
+
+        // Update stats
+        document.getElementById('collectibleQualityScore').textContent = content.qualityScore;
+        document.getElementById('collectibleCriticsScore').textContent = content.critics_score + '%';
+        document.getElementById('collectibleAudienceScore').textContent = content.audience_score + '%';
+        
+        // Update duration label and value based on content type
+        const durationLabel = document.getElementById('collectibleDurationLabel');
+        const durationValue = document.getElementById('collectibleDuration');
+        if (this.currentType === 'series') {
+            durationLabel.textContent = 'Seasons';
+            durationValue.textContent = content.seasons || 'N/A';
+        } else {
+            durationLabel.textContent = 'Runtime';
+            durationValue.textContent = content.duration;
+        }
+
+        // Update description and footer
+        document.getElementById('collectibleDescription').textContent = content.description;
+        const cardYear = document.getElementById('collectibleCardYear');
+        if (this.currentType === 'series' && content.end_year && content.end_year !== content.year) {
+            cardYear.textContent = `${content.year}-${content.end_year}`;
+        } else {
+            cardYear.textContent = content.year;
+        }
+        document.getElementById('collectibleCardRarity').textContent = content.rarity.label;
+
+        // Trigger unlock animation
+        setTimeout(() => {
+            collectibleCard.classList.add('unlock-animation');
+        }, 100);
+
+        // Add tutorial prompt for first-time users
+        this.addCardTutorialPrompt();
+
+        // Dispatch content unlock event for onboarding
+        const unlockEvent = new CustomEvent('contentUnlocked', {
+            detail: {
+                content: content,
+                unlock: unlock,
+                isFirstTime: unlock.is_new
+            }
+        });
+        document.dispatchEvent(unlockEvent);
     }
 
     createBurstEffect(tier) {
@@ -194,6 +236,53 @@ class DiscoveryBoxGame {
         setTimeout(() => {
             burstContainer.removeChild(burst);
         }, 1000);
+    }
+
+    addCardTutorialPrompt() {
+        // Only show for guests who haven't seen education yet
+        const isGuest = !Utils.storage.get('authToken');
+        if (!isGuest) return;
+
+        // Check if it's their first few unlocks
+        const session = guestSession?.getSession();
+        if (!session || session.totalSpins > 3) return;
+
+        // Don't show if prompt already exists
+        if (document.querySelector('.card-tutorial-prompt')) return;
+
+        setTimeout(() => {
+            const collectibleCard = document.getElementById('resultCollectibleCard');
+            if (!collectibleCard) return;
+
+            // Create tutorial prompt
+            const prompt = document.createElement('div');
+            prompt.className = 'card-tutorial-prompt';
+            prompt.innerHTML = 'Learn How!';
+            
+            // Position relative to card
+            collectibleCard.style.position = 'relative';
+            collectibleCard.appendChild(prompt);
+
+            // Add click handler
+            prompt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.showCardTutorial();
+            });
+
+            // Remove prompt after 15 seconds
+            setTimeout(() => {
+                if (prompt.parentNode) {
+                    prompt.remove();
+                }
+            }, 15000);
+        }, 2000); // Show after 2 seconds to let user see the card first
+    }
+
+    showCardTutorial() {
+        // Trigger quality education modal
+        if (window.onboardingManager) {
+            onboardingManager.triggerEducationModal();
+        }
     }
 
     createLegendaryParticles() {

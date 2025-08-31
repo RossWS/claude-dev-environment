@@ -86,7 +86,8 @@ class Database {
 
     async getHighQualityContent(type, minQuality = 83) {
         const sql = `
-            SELECT * FROM content 
+            SELECT *, COALESCE(emoji, CASE WHEN type = 'series' THEN '📺' ELSE '🎬' END) as emoji 
+            FROM content 
             WHERE type = ? AND quality_score >= ? AND is_active = 1
             ORDER BY quality_score DESC
         `;

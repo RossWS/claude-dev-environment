@@ -1,0 +1,3753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Discovery Loot Box</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background particles */
+        .particles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.8) 0%, rgba(138, 43, 226, 0) 70%);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Algorithm info modal */
+        .info-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 2px solid rgba(138, 43, 226, 0.6);
+            color: #fff;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .info-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 999;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(25,25,40,0.95) 0%, rgba(15,15,30,0.95) 100%);
+            border: 2px solid rgba(138, 43, 226, 0.6);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1001;
+            box-shadow: 0 20px 60px rgba(138, 43, 226, 0.3);
+        }
+
+        .modal-content h2 {
+            color: #fff;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-content h3 {
+            color: #a0a0b0;
+            font-size: 1.2em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .modal-content p {
+            color: #d0d0e0;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .formula-box {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #a0a0b0;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #fff;
+        }
+
+        /* Initial selection screen */
+        .selection-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(138, 43, 226, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #a0a0b0;
+            font-size: 1.1em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .choice-container {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .choice-card {
+            width: 200px;
+            height: 280px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 2px solid transparent;
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            border-radius: 20px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f64f59);
+            border-radius: 20px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .choice-card:hover::before {
+            opacity: 1;
+            animation: glow 2s linear infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .choice-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(138, 43, 226, 0.4);
+        }
+
+        .choice-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .choice-title {
+            color: #fff;
+            font-size: 1.4em;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .choice-desc {
+            color: #a0a0b0;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        /* Loot box opening animation */
+        .lootbox-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .lootbox {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotateY(0deg) rotateX(0deg);
+            }
+            100% {
+                transform: rotateY(360deg) rotateX(360deg);
+            }
+        }
+
+        .lootbox-face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid rgba(138, 43, 226, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .lootbox-face:nth-child(1) { transform: rotateY(0deg) translateZ(150px); }
+        .lootbox-face:nth-child(2) { transform: rotateY(90deg) translateZ(150px); }
+        .lootbox-face:nth-child(3) { transform: rotateY(180deg) translateZ(150px); }
+        .lootbox-face:nth-child(4) { transform: rotateY(-90deg) translateZ(150px); }
+        .lootbox-face:nth-child(5) { transform: rotateX(90deg) translateZ(150px); }
+        .lootbox-face:nth-child(6) { transform: rotateX(-90deg) translateZ(150px); }
+
+        .loading-text {
+            color: #fff;
+            font-size: 1.2em;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Result card */
+        .result-card {
+            display: none;
+            background: linear-gradient(135deg, rgba(25,25,35,0.95) 0%, rgba(15,15,25,0.95) 100%);
+            border-radius: 20px;
+            padding: 50px 45px 45px;
+            max-width: 550px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: revealCard 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: visible;
+        }
+        
+        /* Rarity-specific card styles */
+        .result-card.legendary {
+            background: linear-gradient(135deg, rgba(40,35,20,0.95) 0%, rgba(25,20,10,0.95) 100%);
+            border: 3px solid #FFD700;
+            box-shadow: 0 0 60px rgba(255,215,0,0.4), 0 0 120px rgba(255,215,0,0.2);
+            animation: revealCard 0.8s cubic-bezier(0.4, 0, 0.2, 1), legendaryPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes legendaryPulse {
+            0%, 100% { 
+                box-shadow: 0 0 60px rgba(255,215,0,0.4), 0 0 120px rgba(255,215,0,0.2);
+            }
+            50% { 
+                box-shadow: 0 0 80px rgba(255,215,0,0.6), 0 0 150px rgba(255,215,0,0.3);
+            }
+        }
+        
+        .result-card.mythic {
+            background: linear-gradient(135deg, rgba(35,20,35,0.95) 0%, rgba(25,15,30,0.95) 100%);
+            border: 3px solid #FF00FF;
+            box-shadow: 0 0 50px rgba(255,0,255,0.3), 0 0 100px rgba(138,43,226,0.2);
+        }
+        
+        .result-card.epic {
+            background: linear-gradient(135deg, rgba(30,20,35,0.95) 0%, rgba(20,15,30,0.95) 100%);
+            border: 3px solid #9C27B0;
+            box-shadow: 0 0 40px rgba(156,39,176,0.3);
+        }
+        
+        .result-card.rare {
+            background: linear-gradient(135deg, rgba(20,25,35,0.95) 0%, rgba(15,20,30,0.95) 100%);
+            border: 3px solid #2196F3;
+            box-shadow: 0 0 30px rgba(33,150,243,0.3);
+        }
+        
+        .result-card.uncommon {
+            background: linear-gradient(135deg, rgba(20,30,25,0.95) 0%, rgba(15,25,20,0.95) 100%);
+            border: 3px solid #4CAF50;
+            box-shadow: 0 0 20px rgba(76,175,80,0.3);
+        }
+        
+        /* Legendary rainbow effect */
+        .result-card.legendary::after {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+            background-size: 400%;
+            border-radius: 20px;
+            z-index: -1;
+            animation: rainbowBorder 3s linear infinite;
+            opacity: 0.6;
+        }
+        
+        @keyframes rainbowBorder {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Rarity badge */
+        .rarity-badge {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 28px;
+            border-radius: 25px;
+            font-weight: 900;
+            font-size: 1.1em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+        }
+        
+        .rarity-badge.legendary {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            animation: legendaryShine 2s linear infinite;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        
+        @keyframes legendaryShine {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+        
+        .rarity-badge.mythic {
+            background: linear-gradient(135deg, #FF00FF, #8A2BE2);
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .rarity-badge.epic {
+            background: linear-gradient(135deg, #9C27B0, #673AB7);
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .rarity-badge.rare {
+            background: linear-gradient(135deg, #2196F3, #03A9F4);
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .rarity-badge.uncommon {
+            background: linear-gradient(135deg, #4CAF50, #8BC34A);
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        /* Score display enhancement */
+        .quality-score {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 15px;
+            font-weight: 900;
+            font-size: 1.3em;
+            border: 3px solid currentColor;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 2px 10px currentColor;
+        }
+        
+        .quality-score.legendary {
+            border-color: #FFD700;
+            color: #FFD700;
+            box-shadow: 0 0 30px rgba(255,215,0,0.6);
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(40,30,0,0.8));
+            font-size: 1.4em;
+        }
+        
+        .quality-score.mythic {
+            border-color: #FF00FF;
+            color: #FF00FF;
+            box-shadow: 0 0 25px rgba(255,0,255,0.6);
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(40,0,40,0.8));
+            font-size: 1.4em;
+        }
+        
+        .quality-score.epic {
+            border-color: #9C27B0;
+            color: #C77DFF;
+            box-shadow: 0 0 20px rgba(156,39,176,0.6);
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(30,0,40,0.8));
+        }
+        
+        .quality-score.rare {
+            border-color: #2196F3;
+            color: #64B5F6;
+            box-shadow: 0 0 20px rgba(33,150,243,0.6);
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,20,40,0.8));
+        }
+        
+        .quality-score.uncommon {
+            border-color: #4CAF50;
+            color: #81C784;
+            box-shadow: 0 0 15px rgba(76,175,80,0.6);
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,30,10,0.8));
+        }
+        
+        /* Particles for legendary items */
+        .legendary-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+        
+        .legendary-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #FFD700;
+            border-radius: 50%;
+            animation: floatUp 3s linear infinite;
+        }
+        
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-200px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes revealCard {
+            0% {
+                transform: scale(0) rotateY(180deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) rotateY(90deg);
+            }
+            100% {
+                transform: scale(1) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+
+        .content-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .content-title {
+            color: #fff;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            color: #a0a0b0;
+            font-size: 0.9em;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .star {
+            color: #ffd700;
+        }
+
+        .quality-score {
+            background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .content-description {
+            color: #d0d0e0;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        /* Burst animation */
+        .burst {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+        }
+
+        .burst-particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes burst-out {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(2);
+                opacity: 0;
+            }
+        }
+
+        .release-date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .release-badge {
+            background: rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 165, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <!-- Algorithm Info Button -->
+    <button class="info-button" onclick="showModal()">ℹ️</button>
+    
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay" onclick="hideModal()"></div>
+    
+    <!-- Modal Content -->
+    <div class="modal-content" id="modalContent" style="display: none;">
+        <button class="close-modal" onclick="hideModal()">×</button>
+        <h2>🎯 The CinemaScore Algorithm</h2>
+        
+        <h3>How We Find the Best Content</h3>
+        <p>Our proprietary algorithm combines critical acclaim with audience love to surface only the highest quality movies and TV shows from the last 12 months.</p>
+        
+        <div class="formula-box">
+            <strong>Quality Score = </strong><br>
+            (Critics Score × 0.65) + (Audience Score × 0.35)<br>
+            <strong>+ Bonus Modifiers:</strong><br>
+            • Certified Fresh: +4 points<br>
+            • Verified Hot: +2 points<br>
+            • Score Consistency: +3 points<br>
+            • Large Gap Penalty: -3 points (if audience exceeds critics by 30+)<br>
+            <br>
+            <strong>Minimum Thresholds:</strong><br>
+            • Critics: 75%+ on Rotten Tomatoes<br>
+            • Audience: 7.0+ on IMDB or 70%+ RT<br>
+            • Released within last 12 months
+        </div>
+        
+        <h3>Why This Formula?</h3>
+        <p><strong>65% Critic Weight:</strong> Professional critics evaluate technical merit, artistic achievement, and storytelling quality with trained expertise.</p>
+        
+        <p><strong>35% Audience Weight:</strong> General viewers provide important perspective on entertainment value and accessibility.</p>
+        
+        <p><strong>Gap Penalty:</strong> Films where audience scores vastly exceed critical scores often indicate populist appeal without artistic merit, receiving a small penalty.</p>
+        
+        <p><strong>Bonus System:</strong> Special achievements like "Certified Fresh" status indicate exceptional quality consensus, earning extra points.</p>
+        
+        <h3>Quality Guarantee</h3>
+        <p>Only content scoring 83+ on our scale makes it into the loot box. This ensures you're discovering truly exceptional entertainment based on critical and artistic merit, not just popularity.</p>
+        
+        <h3>Rarity Tiers</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin: 15px 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #FFD700; font-weight: bold;">⚜️ LEGENDARY (96-100)</span>
+                <span style="color: #a0a0b0;">- Top 1% masterpieces with rainbow effects</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #FF00FF; font-weight: bold;">✨ MYTHIC (93-95)</span>
+                <span style="color: #a0a0b0;">- Exceptional films with purple glow</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #9C27B0; font-weight: bold;">⭐ EPIC (90-92)</span>
+                <span style="color: #a0a0b0;">- Outstanding content with epic presence</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #2196F3; font-weight: bold;">◆ RARE (86-89)</span>
+                <span style="color: #a0a0b0;">- Excellent films with blue aura</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="color: #4CAF50; font-weight: bold;">● UNCOMMON (83-85)</span>
+                <span style="color: #a0a0b0;">- Great content worth your time</span>
+            </div>
+        </div>
+        
+        <p style="margin-top: 20px; font-style: italic; color: #667eea;">Every recommendation is from critically acclaimed content available on major platforms like Apple TV+, Netflix, Amazon Prime, Hulu, or Max.</p>
+    </div>
+
+    <div class="container">
+        <!-- Selection Screen -->
+        <div class="selection-screen" id="selectionScreen">
+            <div>
+                <h1>🎬 Premium Content Discovery</h1>
+                <p class="subtitle">Algorithm-powered curation of the finest entertainment from 2024-2025</p>
+            </div>
+            
+            <div class="choice-container">
+                <div class="choice-card" onclick="openLootbox('movie')">
+                    <div class="choice-icon">🎥</div>
+                    <div class="choice-title">Movie</div>
+                    <div class="choice-desc">Certified Fresh films with 85+ quality scores</div>
+                </div>
+                
+                <div class="choice-card" onclick="openLootbox('series')">
+                    <div class="choice-icon">📺</div>
+                    <div class="choice-title">TV Series</div>
+                    <div class="choice-desc">Award-winning shows from the last year</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lootbox Animation -->
+        <div class="lootbox-container" id="lootboxContainer">
+            <div class="lootbox" id="lootbox">
+                <div class="lootbox-face"></div>
+                <div class="lootbox-face"></div>
+                <div class="lootbox-face"></div>
+                <div class="lootbox-face"></div>
+                <div class="lootbox-face"></div>
+                <div class="lootbox-face"></div>
+            </div>
+            <p class="loading-text">Analyzing quality metrics...</p>
+        </div>
+
+        <!-- Result Card -->
+        <div class="result-card" id="resultCard">
+            <div class="rarity-badge" id="rarityBadge">LEGENDARY</div>
+            <div class="legendary-particles" id="legendaryParticles"></div>
+            <div class="burst" id="burst"></div>
+            <div class="content-badge" id="contentBadge">MOVIE</div>
+            <h2 class="content-title" id="contentTitle">Loading...</h2>
+            <div class="content-meta">
+                <div class="rating">
+                    <span class="star">⭐</span>
+                    <span id="contentRating">8.5/10</span>
+                </div>
+                <div class="quality-score" id="qualityScore">
+                    <span>💎</span>
+                    <span>Quality: 92</span>
+                </div>
+                <span id="contentYear">2025</span>
+                <span id="contentDuration">120 min</span>
+                <div class="release-date" id="releaseInfo">
+                    <span class="release-badge">NEW</span>
+                </div>
+            </div>
+            <p class="content-description" id="contentDescription">
+                Loading description...
+            </p>
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="location.reload()">Discover Another</button>
+                <button class="btn btn-secondary" onclick="watchNow()">Stream Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Real content database from the last 12 months with actual scores
+        const content = {
+            movies: [
+                {
+                    title: "Dune: Part Two",
+                    criticsScore: 92,
+                    audienceScore: 95,
+                    imdbRating: 8.8,
+                    year: 2024,
+                    month: "March",
+                    duration: "166 min",
+                    description: "Paul Atreides unites with Chani and the Fremen while on a path of revenge against those who destroyed his family. Facing a choice between the love of his life and the fate of the universe, he must prevent a terrible future.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Anora",
+                    criticsScore: 93,
+                    audienceScore: 90,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "October",
+                    duration: "139 min",
+                    description: "A young Brooklyn stripper's whirlwind romance with the son of a Russian oligarch leads to chaos when his family intervenes. Sean Baker's Palme d'Or winner features a star-making performance from Mikey Madison.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Hulu", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Wicked",
+                    criticsScore: 92,
+                    audienceScore: 96,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "November",
+                    duration: "160 min",
+                    description: "The untold story of the witches of Oz. Elphaba and Glinda's friendship at Shiz University leads them to fulfill their destinies as the Good Witch and the Wicked Witch of the West.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["In Theaters", "Coming to Digital"]
+                },
+                {
+                    title: "Conclave",
+                    criticsScore: 93,
+                    audienceScore: 86,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "October",
+                    duration: "120 min",
+                    description: "Cardinal Lawrence oversees the secretive papal conclave after the Pope's death, uncovering a conspiracy that could shake the Catholic Church. Ralph Fiennes delivers a career-defining performance.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV", "Amazon Prime", "Vudu"]
+                },
+                {
+                    title: "The Wild Robot",
+                    criticsScore: 98,
+                    audienceScore: 98,
+                    imdbRating: 8.3,
+                    year: 2024,
+                    month: "September",
+                    duration: "102 min",
+                    description: "Robot Roz awakens on a deserted island and learns to adapt, eventually becoming the adoptive parent of an orphaned gosling. A heartwarming DreamWorks animation about family and belonging.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Apple TV", "Amazon Prime", "Vudu"]
+                },
+                {
+                    title: "Inside Out 2",
+                    criticsScore: 91,
+                    audienceScore: 95,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "June",
+                    duration: "96 min",
+                    description: "Riley is now a teenager, and her emotions must navigate new feelings like Anxiety and Embarrassment. Pixar's sequel became the highest-grossing animated film of all time.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Disney+", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Challengers",
+                    criticsScore: 88,
+                    audienceScore: 85,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "April",
+                    duration: "131 min",
+                    description: "A former tennis prodigy turned coach transforms her husband into a champion. To overcome a losing streak, he must face his former best friend and her ex-boyfriend. Zendaya stars in Luca Guadagnino's sexy sports drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["MGM+", "Amazon Prime", "Apple TV"]
+                },
+                {
+                    title: "Hit Man",
+                    criticsScore: 95,
+                    audienceScore: 87,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "June",
+                    duration: "115 min",
+                    description: "A strait-laced professor moonlights as a fake hitman for the police, but his life spirals when he falls for a woman who wants to hire him. Glen Powell stars in Richard Linklater's dark comedy.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Substance",
+                    criticsScore: 90,
+                    audienceScore: 83,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "September",
+                    duration: "141 min",
+                    description: "A fading celebrity takes a black-market drug that creates a younger, better version of herself. Demi Moore stars in this body horror sensation that won Best Screenplay at Cannes.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["MUBI", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Civil War",
+                    criticsScore: 81,
+                    audienceScore: 85,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "April",
+                    duration: "109 min",
+                    description: "Military-embedded journalists race to reach Washington D.C. before rebel factions descend on the White House. Alex Garland's provocative thriller examines a divided America.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "All We Imagine as Light",
+                    criticsScore: 99,
+                    audienceScore: 88,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "November",
+                    duration: "118 min",
+                    description: "The lives of working-class women in contemporary Mumbai are explored in this luminous drama. Payal Kapadia's debut won the Grand Prix at Cannes Film Festival.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["In Theaters", "Coming Soon"]
+                },
+                {
+                    title: "Love Lies Bleeding",
+                    criticsScore: 94,
+                    audienceScore: 75,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "March",
+                    duration: "104 min",
+                    description: "A reclusive gym manager falls for an ambitious bodybuilder, leading them down a violent path. Kristen Stewart stars in this neo-noir thriller from Rose Glass.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Furiosa: A Mad Max Saga",
+                    criticsScore: 90,
+                    audienceScore: 89,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "May",
+                    duration: "148 min",
+                    description: "Young Furiosa is snatched from the Green Place and falls into a biker horde led by Warlord Dementus. Anya Taylor-Joy stars in George Miller's explosive prequel.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "A Real Pain",
+                    criticsScore: 96,
+                    audienceScore: 88,
+                    imdbRating: 7.6,
+                    year: 2024,
+                    month: "November",
+                    duration: "90 min",
+                    description: "Mismatched cousins reunite for a tour through Poland to honor their grandmother. Jesse Eisenberg writes, directs and stars opposite Kieran Culkin in this poignant dramedy.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Searchlight", "Coming to Hulu"]
+                },
+                {
+                    title: "Alien: Romulus",
+                    criticsScore: 80,
+                    audienceScore: 85,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "August",
+                    duration: "119 min",
+                    description: "Young space colonizers scavenging a derelict station face the universe's most terrifying life form. Fede Álvarez reinvigorates the franchise with fresh frights.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Hulu", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Deadpool & Wolverine",
+                    criticsScore: 79,
+                    audienceScore: 95,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "July",
+                    duration: "128 min",
+                    description: "Deadpool's peaceful existence ends when the TVA recruits him to help safeguard the multiverse. Ryan Reynolds and Hugh Jackman unite in this irreverent MCU romp.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Disney+", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Kingdom of the Planet of the Apes",
+                    criticsScore: 80,
+                    audienceScore: 86,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "May",
+                    duration: "145 min",
+                    description: "Generations after Caesar's reign, a young ape embarks on a journey that will define the future for both apes and humans. Wes Ball breathes new life into the epic franchise.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Hulu", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "The Brutalist",
+                    criticsScore: 95,
+                    audienceScore: 82,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "December",
+                    duration: "215 min",
+                    description: "Visionary architect László Toth escapes post-war Europe to rebuild his life in America. Adrien Brody stars in Brady Corbet's epic about the immigrant experience.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "In Theaters"]
+                },
+                {
+                    title: "Beetlejuice Beetlejuice",
+                    criticsScore: 76,
+                    audienceScore: 82,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "September",
+                    duration: "105 min",
+                    description: "Three generations of the Deetz family return to Winter River, where Beetlejuice is still waiting. Tim Burton and Michael Keaton reunite for this madcap sequel.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "We Live in Time",
+                    criticsScore: 79,
+                    audienceScore: 88,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "October",
+                    duration: "108 min",
+                    description: "A couple brought together by surprise navigate life's ups and downs through snapshots of their relationship. Andrew Garfield and Florence Pugh's chemistry anchors this emotional journey.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Saturday Night",
+                    criticsScore: 79,
+                    audienceScore: 83,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "October",
+                    duration: "109 min",
+                    description: "At 11:30pm on October 11, 1975, a ferocious troupe of young comedians changed television forever. Jason Reitman captures the chaos behind SNL's first broadcast.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Sony", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Gladiator II",
+                    criticsScore: 71,
+                    audienceScore: 83,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "November",
+                    duration: "148 min",
+                    description: "Years after witnessing Maximus's death, Lucius must enter the Colosseum. Paul Mescal and Denzel Washington star in Ridley Scott's epic sequel.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["In Theaters", "Coming Soon"]
+                },
+                {
+                    title: "The Room Next Door",
+                    criticsScore: 88,
+                    audienceScore: 76,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "December",
+                    duration: "107 min",
+                    description: "Two old friends reunite after years apart when one faces a terminal illness. Pedro Almodóvar's English-language debut stars Julianne Moore and Tilda Swinton.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Sony Pictures Classics"]
+                },
+                {
+                    title: "A Different Man",
+                    criticsScore: 92,
+                    audienceScore: 77,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "September",
+                    duration: "112 min",
+                    description: "An aspiring actor undergoes a radical medical procedure to change his appearance. Sebastian Stan delivers a transformative performance in this surreal psychological thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Nickel Boys",
+                    criticsScore: 96,
+                    audienceScore: 72,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "December",
+                    duration: "140 min",
+                    description: "Elwood Curtis's college dreams shatter when he's sent to a reform school. RaMell Ross's innovative adaptation of Colson Whitehead's novel offers an immersive perspective on injustice.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["MGM", "Amazon Studios"]
+                },
+                {
+                    title: "The First Omen",
+                    criticsScore: 83,
+                    audienceScore: 76,
+                    imdbRating: 6.7,
+                    year: 2024,
+                    month: "April",
+                    duration: "119 min",
+                    description: "A young American woman sent to Rome to serve the church encounters a darkness that causes her to question her faith. This prequel breathes new life into the classic horror franchise.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Hulu", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Smile 2",
+                    criticsScore: 85,
+                    audienceScore: 82,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "October",
+                    duration: "127 min",
+                    description: "Global pop sensation Skye Riley begins experiencing terrifying events as she embarks on a world tour. Naomi Scott stars in this expanded horror sequel.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Paramount+", "Apple TV"]
+                },
+                {
+                    title: "Longlegs",
+                    criticsScore: 86,
+                    audienceScore: 75,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "July",
+                    duration: "101 min",
+                    description: "An FBI agent pursues a serial killer who leaves behind cryptic clues. Nicolas Cage delivers a haunting performance in Osgood Perkins' atmospheric thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV", "Amazon Prime", "Vudu"]
+                },
+                {
+                    title: "The Fall Guy",
+                    criticsScore: 82,
+                    audienceScore: 86,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "May",
+                    duration: "126 min",
+                    description: "A stuntman must track down a missing movie star while trying to win back his ex. Ryan Gosling and Emily Blunt star in this action-packed love letter to stunts.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Peacock", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "A Quiet Place: Day One",
+                    criticsScore: 87,
+                    audienceScore: 82,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "June",
+                    duration: "99 min",
+                    description: "Experience the day the world went quiet. Lupita Nyong'o stars in this prequel showing New York City's first encounter with the sound-hunting aliens.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Paramount+", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Robot Dreams",
+                    criticsScore: 98,
+                    audienceScore: 88,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "May",
+                    duration: "103 min",
+                    description: "In 1980s Manhattan, a lonely dog builds a robot companion. This wordless animated masterpiece explores friendship and loss with profound emotional depth.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Heretic",
+                    criticsScore: 91,
+                    audienceScore: 77,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "November",
+                    duration: "111 min",
+                    description: "Two young missionaries become trapped in a deadly game of cat-and-mouse. Hugh Grant delivers a chilling performance in this psychological horror thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "Coming to Digital"]
+                },
+                {
+                    title: "The Idea of You",
+                    criticsScore: 83,
+                    audienceScore: 78,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "May",
+                    duration: "115 min",
+                    description: "A 40-year-old single mom begins an unexpected romance with a 24-year-old boy band member. Anne Hathaway charms in this sophisticated romantic comedy.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Blitz",
+                    criticsScore: 80,
+                    audienceScore: 83,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "November",
+                    duration: "120 min",
+                    description: "A 9-year-old boy's epic journey through WWII London to reunite with his mother. Steve McQueen directs Saoirse Ronan in this wartime survival tale.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Babygirl",
+                    criticsScore: 75,
+                    audienceScore: 71,
+                    imdbRating: 6.7,
+                    year: 2024,
+                    month: "December",
+                    duration: "114 min",
+                    description: "A high-powered CEO risks everything when she begins an affair with her young intern. Nicole Kidman and Harris Dickinson star in this provocative erotic thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "In Theaters"]
+                },
+                {
+                    title: "Woman of the Hour",
+                    criticsScore: 91,
+                    audienceScore: 85,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "October",
+                    duration: "96 min",
+                    description: "An aspiring actress crosses paths with a serial killer on a 1970s dating show. Anna Kendrick makes her directorial debut with this true-crime thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Between the Temples",
+                    criticsScore: 86,
+                    audienceScore: 68,
+                    imdbRating: 6.5,
+                    year: 2024,
+                    month: "August",
+                    duration: "111 min",
+                    description: "A cantor in crisis finds new purpose when his grade school music teacher enrolls in his adult bat mitzvah class. Jason Schwartzman and Carol Kane star in this quirky dramedy.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Sony Pictures Classics"]
+                },
+                {
+                    title: "Kinds of Kindness",
+                    criticsScore: 71,
+                    audienceScore: 57,
+                    imdbRating: 6.7,
+                    year: 2024,
+                    month: "June",
+                    duration: "164 min",
+                    description: "A triptych fable following three stories of control, power, and manipulation. Yorgos Lanthimos reunites with Emma Stone and Jesse Plemons for this surreal anthology.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Searchlight", "Hulu"]
+                },
+                {
+                    title: "Twisters",
+                    criticsScore: 75,
+                    audienceScore: 91,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "July",
+                    duration: "122 min",
+                    description: "A former storm chaser returns to Oklahoma to test a new tracking system. Glen Powell and Daisy Edgar-Jones lead this standalone sequel to the 1996 disaster film.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Peacock", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Godzilla x Kong: The New Empire",
+                    criticsScore: 54,
+                    audienceScore: 91,
+                    imdbRating: 6.4,
+                    year: 2024,
+                    month: "March",
+                    duration: "115 min",
+                    description: "The almighty Kong and fearsome Godzilla face a colossal threat hidden within our world. The Monsterverse continues with spectacular monster mayhem.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Bad Boys: Ride or Die",
+                    criticsScore: 65,
+                    audienceScore: 97,
+                    imdbRating: 6.7,
+                    year: 2024,
+                    month: "June",
+                    duration: "115 min",
+                    description: "Miami's finest are now on the run when their late captain gets linked to drug cartels. Will Smith and Martin Lawrence return for more buddy cop action.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Netflix", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Paddington in Peru",
+                    criticsScore: 94,
+                    audienceScore: 88,
+                    imdbRating: 7.2,
+                    year: 2025,
+                    month: "January",
+                    duration: "106 min",
+                    description: "Paddington travels to Peru to visit his beloved Aunt Lucy at the Home for Retired Bears. The beloved bear's latest adventure delivers family-friendly charm.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["In Theaters", "Coming Soon"]
+                },
+                {
+                    title: "My Dead Friend Zoe",
+                    criticsScore: 85,
+                    audienceScore: 78,
+                    imdbRating: 6.8,
+                    year: 2025,
+                    month: "January",
+                    duration: "95 min",
+                    description: "A U.S. Army veteran struggles with PTSD while maintaining a relationship with her deceased best friend. Sonequa Martin-Green stars in this darkly comic drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["MGM", "Coming Soon"]
+                },
+                {
+                    title: "September 5",
+                    criticsScore: 94,
+                    audienceScore: 88,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "December",
+                    duration: "95 min",
+                    description: "The story of how ABC Sports covered the 1972 Munich Olympics hostage crisis. A gripping thriller about journalism under impossible circumstances.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Paramount", "Coming Soon"]
+                },
+                {
+                    title: "La Chimera",
+                    criticsScore: 93,
+                    audienceScore: 82,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "March",
+                    duration: "133 min",
+                    description: "A British archaeologist involved with tomb raiders in 1980s Italy searches for a lost love. Josh O'Connor stars in Alice Rohrwacher's mystical adventure.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Neon", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "The Bikeriders",
+                    criticsScore: 80,
+                    audienceScore: 76,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "June",
+                    duration: "116 min",
+                    description: "The rise of a 1960s Midwestern motorcycle club seen through the lives of its members. Austin Butler, Jodie Comer, and Tom Hardy star in this period crime drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Peacock", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Cuckoo",
+                    criticsScore: 79,
+                    audienceScore: 68,
+                    imdbRating: 6.1,
+                    year: 2024,
+                    month: "August",
+                    duration: "102 min",
+                    description: "A 17-year-old girl discovers disturbing secrets at her father's resort in the German Alps. Hunter Schafer stars in this madcap horror thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Hulu", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Strange Darling",
+                    criticsScore: 95,
+                    audienceScore: 88,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "August",
+                    duration: "97 min",
+                    description: "A twisted one-night stand spirals into a serial killer's vicious murder spree. This non-linear thriller subverts expectations at every turn.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV", "Amazon Prime", "Vudu"]
+                },
+                {
+                    title: "Tuesday",
+                    criticsScore: 84,
+                    audienceScore: 58,
+                    imdbRating: 6.3,
+                    year: 2024,
+                    month: "June",
+                    duration: "110 min",
+                    description: "A mother and daughter must confront Death when it arrives in the form of a talking bird. Julia Louis-Dreyfus delivers a profound performance in this magical realist drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Late Night with the Devil",
+                    criticsScore: 96,
+                    audienceScore: 77,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "March",
+                    duration: "93 min",
+                    description: "A live television broadcast in 1977 goes horribly wrong, unleashing evil into the nation's living rooms. David Dastmalchian stars in this found footage horror.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Shudder", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Good One",
+                    criticsScore: 97,
+                    audienceScore: 71,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "August",
+                    duration: "90 min",
+                    description: "A 17-year-old's backpacking trip with her father and his friend takes an uncomfortable turn. India Donaldson's debut is a masterful exploration of boundaries.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Metrograph", "Coming to VOD"]
+                },
+                {
+                    title: "Música",
+                    criticsScore: 88,
+                    audienceScore: 95,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "April",
+                    duration: "91 min",
+                    description: "A young man navigates love, family, and his future in Newark's Brazilian community while living with synesthesia. Rudy Mancuso's directorial debut pulses with creativity.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Girls Will Be Girls",
+                    criticsScore: 96,
+                    audienceScore: 84,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "December",
+                    duration: "118 min",
+                    description: "At a strict Himalayan boarding school, a 16-year-old's sexual awakening challenges authority. Shuchi Talati's debut won two awards at Sundance.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Coming to Prime Video"]
+                },
+                {
+                    title: "I Saw the TV Glow",
+                    criticsScore: 84,
+                    audienceScore: 55,
+                    imdbRating: 5.9,
+                    year: 2024,
+                    month: "May",
+                    duration: "100 min",
+                    description: "Two teenagers bond over a supernatural TV show that may be more real than they think. Jane Schoenbrun's genre-defying film explores identity and nostalgia.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Juror #2",
+                    criticsScore: 91,
+                    audienceScore: 90,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "November",
+                    duration: "114 min",
+                    description: "A juror in a murder trial realizes he may have caused the victim's death. Nicholas Hoult stars in Clint Eastwood's morally complex legal thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max", "Limited Theaters"]
+                },
+                {
+                    title: "Oddity",
+                    criticsScore: 97,
+                    audienceScore: 72,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "July",
+                    duration: "98 min",
+                    description: "A blind medium uses her psychic abilities to investigate her twin sister's death. This Irish horror film delivers genuine scares with supernatural style.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Shudder", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Kneecap",
+                    criticsScore: 97,
+                    audienceScore: 94,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "August",
+                    duration: "105 min",
+                    description: "The true story of how Belfast's controversial hip-hop trio became the unlikely voice of a generation. A raucous celebration of Irish language and culture.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Sony Pictures Classics"]
+                },
+                {
+                    title: "Janet Planet",
+                    criticsScore: 83,
+                    audienceScore: 48,
+                    imdbRating: 5.8,
+                    year: 2024,
+                    month: "June",
+                    duration: "113 min",
+                    description: "An 11-year-old girl navigates her complicated relationship with her charismatic mother in 1990s Massachusetts. Annie Baker's directorial debut is intimate and observant.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Green Border",
+                    criticsScore: 96,
+                    audienceScore: 88,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "June",
+                    duration: "152 min",
+                    description: "Refugees trapped between Belarus and Poland face an impossible humanitarian crisis. Agnieszka Holland's urgent drama won the Special Jury Prize at Venice.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Kino Lorber", "Coming to VOD"]
+                },
+                {
+                    title: "The Promised Land",
+                    criticsScore: 96,
+                    audienceScore: 87,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "February",
+                    duration: "127 min",
+                    description: "In 18th century Denmark, a soldier attempts to tame an uninhabitable land to gain wealth and honor. Mads Mikkelsen stars in this epic historical drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Magnolia", "Apple TV", "Hulu"]
+                },
+                {
+                    title: "Perfect Days",
+                    criticsScore: 95,
+                    audienceScore: 88,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "February",
+                    duration: "123 min",
+                    description: "A Tokyo toilet cleaner finds contentment in his simple routine. Wim Wenders' meditation on everyday beauty earned an Oscar nomination for Japan.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Neon", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Nosferatu",
+                    criticsScore: 87,
+                    audienceScore: 90,
+                    imdbRating: 7.6,
+                    year: 2024,
+                    month: "December",
+                    duration: "133 min",
+                    description: "An ancient vampire brings terror to 1830s Germany after becoming obsessed with a young woman. Robert Eggers reimagines the classic with Bill Skarsgård and Lily-Rose Depp.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["In Theaters", "Coming Soon"]
+                },
+                {
+                    title: "MaXXXine",
+                    criticsScore: 73,
+                    audienceScore: 76,
+                    imdbRating: 6.3,
+                    year: 2024,
+                    month: "July",
+                    duration: "104 min",
+                    description: "Adult film star Maxine Minx finally gets her big break in 1980s Hollywood while a killer stalks starlets. Mia Goth completes Ti West's X trilogy.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Fly Me to the Moon",
+                    criticsScore: 65,
+                    audienceScore: 91,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "July",
+                    duration: "132 min",
+                    description: "A marketing executive brought in to fix NASA's image sparks with the launch director during the Apollo 11 mission. Scarlett Johansson and Channing Tatum star in this rom-com.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Apple TV+", "Amazon Prime"]
+                },
+                {
+                    title: "Babes",
+                    criticsScore: 86,
+                    audienceScore: 83,
+                    imdbRating: 6.4,
+                    year: 2024,
+                    month: "May",
+                    duration: "109 min",
+                    description: "Inseparable best friends navigate an unexpected pregnancy. Ilana Glazer and Michelle Buteau bring heart and humor to Pamela Adlon's directorial debut.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Hulu", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "The Count of Monte-Cristo",
+                    criticsScore: 94,
+                    audienceScore: 96,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "June",
+                    duration: "178 min",
+                    description: "Edmond Dantès seeks revenge after being wrongfully imprisoned on his wedding day. This lavish French adaptation brings Alexandre Dumas' classic to life.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["In US Theaters Soon"]
+                },
+                {
+                    title: "Ultraman: Rising",
+                    criticsScore: 83,
+                    audienceScore: 86,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "June",
+                    duration: "117 min",
+                    description: "A baseball star returns to Japan to take on the mantle of Ultraman while raising a baby kaiju. Netflix's animated film balances action with heart.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Hundreds of Beavers",
+                    criticsScore: 96,
+                    audienceScore: 88,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "January",
+                    duration: "108 min",
+                    description: "A 19th century applejack salesman must become North America's greatest fur trapper to survive. A slapstick adventure that recalls silent cinema classics.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV", "Amazon Prime", "Vudu"]
+                },
+                {
+                    title: "The Boy and the Heron",
+                    criticsScore: 97,
+                    audienceScore: 88,
+                    imdbRating: 7.6,
+                    year: 2024,
+                    month: "December 2023/Wide 2024",
+                    duration: "124 min",
+                    description: "A young boy enters a magical world with a mysterious gray heron after his mother's death. Hayao Miyazaki's latest masterpiece won the Oscar for Best Animated Feature.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "His Three Daughters",
+                    criticsScore: 98,
+                    audienceScore: 81,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "September",
+                    duration: "101 min",
+                    description: "Three estranged sisters reunite to care for their dying father. Carrie Coon, Natasha Lyonne, and Elizabeth Olsen deliver powerhouse performances.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Apprentice",
+                    criticsScore: 79,
+                    audienceScore: 86,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "October",
+                    duration: "122 min",
+                    description: "Young Donald Trump's rise in 1970s New York under the tutelage of Roy Cohn. Sebastian Stan and Jeremy Strong star in this controversial biopic.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Digital Rental"]
+                },
+                {
+                    title: "Emilia Pérez",
+                    criticsScore: 76,
+                    audienceScore: 81,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "November",
+                    duration: "132 min",
+                    description: "A Mexican cartel leader undergoes gender reassignment surgery to disappear and become her true self. Jacques Audiard's musical won multiple awards at Cannes.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix", "Select Theaters"]
+                },
+                {
+                    title: "It's What's Inside",
+                    criticsScore: 81,
+                    audienceScore: 66,
+                    imdbRating: 6.6,
+                    year: 2024,
+                    month: "October",
+                    duration: "103 min",
+                    description: "A pre-wedding reunion turns sinister when friends play with a mysterious body-swapping device. Greg Jardin's twisty thriller keeps you guessing.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Sing Sing",
+                    criticsScore: 98,
+                    audienceScore: 90,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "July",
+                    duration: "105 min",
+                    description: "Incarcerated men find purpose in a theater group at Sing Sing prison. Colman Domingo stars alongside formerly incarcerated actors in this moving drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["A24", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "The Zone of Interest",
+                    criticsScore: 93,
+                    audienceScore: 75,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "February",
+                    duration: "105 min",
+                    description: "The commandant of Auschwitz and his wife strive to build a dream life next to the camp. Jonathan Glazer's chilling drama won the Oscar for Best International Film.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Monkey Man",
+                    criticsScore: 88,
+                    audienceScore: 83,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "April",
+                    duration: "121 min",
+                    description: "An anonymous young man unleashes a campaign of vengeance against corrupt leaders. Dev Patel makes his directorial debut with this kinetic action thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Peacock", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Do Not Expect Too Much from the End of the World",
+                    criticsScore: 94,
+                    audienceScore: 76,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "March",
+                    duration: "163 min",
+                    description: "An overworked production assistant drives around Bucharest interviewing injured workers. Radu Jude's satirical odyssey won the Special Jury Prize at Locarno.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Grasshopper Film"]
+                },
+                {
+                    title: "The Teachers' Lounge",
+                    criticsScore: 95,
+                    audienceScore: 77,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "January",
+                    duration: "98 min",
+                    description: "A idealistic teacher's attempt to solve a series of thefts spirals out of control. Germany's Oscar submission is a taut thriller about institutional paranoia.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Sony Pictures Classics"]
+                },
+                {
+                    title: "The Taste of Things",
+                    criticsScore: 97,
+                    audienceScore: 85,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "February",
+                    duration: "135 min",
+                    description: "A cook and the gourmet she's worked for over 20 years develop an unspoken romance. Juliette Binoche stars in this sumptuous French period drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV", "Amazon Prime", "IFC Films"]
+                },
+                {
+                    title: "How to Have Sex",
+                    criticsScore: 91,
+                    audienceScore: 66,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "February",
+                    duration: "91 min",
+                    description: "Three British teenage girls go on a rites-of-passage holiday in Greece. Molly Manning Walker's debut explores consent with remarkable sensitivity.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["MUBI", "Apple TV"]
+                },
+                {
+                    title: "Evil Does Not Exist",
+                    criticsScore: 96,
+                    audienceScore: 59,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "May",
+                    duration: "106 min",
+                    description: "A rural Japanese community faces disruption when a Tokyo company plans to build a glamping site. Ryusuke Hamaguchi's ecological fable unfolds with hypnotic beauty.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Sideshow/Janus Films"]
+                },
+                {
+                    title: "The Beast",
+                    criticsScore: 86,
+                    audienceScore: 66,
+                    imdbRating: 6.7,
+                    year: 2024,
+                    month: "April",
+                    duration: "146 min",
+                    description: "Across three time periods, a woman and man are haunted by a past life trauma. Léa Seydoux and George MacKay star in Bertrand Bonello's ambitious sci-fi romance.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Janus Films", "Coming to Criterion"]
+                },
+                {
+                    title: "Io Capitano",
+                    criticsScore: 95,
+                    audienceScore: 86,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "February",
+                    duration: "121 min",
+                    description: "Two Senegalese teenagers embark on a perilous journey to Europe through the Sahara and Mediterranean. Matteo Garrone's odyssey earned an Oscar nomination.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Cohen Media Group"]
+                },
+                {
+                    title: "Red One",
+                    criticsScore: 31,
+                    audienceScore: 90,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "November",
+                    duration: "123 min",
+                    description: "After Santa is kidnapped, his head of security teams with a notorious hacker to save Christmas. Dwayne Johnson and Chris Evans star in this action-comedy.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Prime Video", "In Theaters"]
+                },
+                {
+                    title: "The Beekeeper",
+                    criticsScore: 71,
+                    audienceScore: 92,
+                    imdbRating: 6.5,
+                    year: 2024,
+                    month: "January",
+                    duration: "105 min",
+                    description: "A former operative seeks vengeance on scammers who caused a tragedy. Jason Statham delivers justice in this action thriller from David Ayer.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["MGM+", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Argylle",
+                    criticsScore: 33,
+                    audienceScore: 73,
+                    imdbRating: 5.7,
+                    year: 2024,
+                    month: "February",
+                    duration: "139 min",
+                    description: "A reclusive author discovers her spy novels mirror real covert operations. Bryce Dallas Howard leads an all-star cast in Matthew Vaughn's twisty thriller.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+", "Amazon Prime"]
+                },
+                {
+                    title: "IF",
+                    criticsScore: 49,
+                    audienceScore: 87,
+                    imdbRating: 6.6,
+                    year: 2024,
+                    month: "May",
+                    duration: "104 min",
+                    description: "A young girl discovers she can see everyone's abandoned imaginary friends. Ryan Reynolds and John Krasinski bring whimsy to this family fantasy.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Paramount+", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Joker: Folie à Deux",
+                    criticsScore: 31,
+                    audienceScore: 32,
+                    imdbRating: 5.3,
+                    year: 2024,
+                    month: "October",
+                    duration: "138 min",
+                    description: "Arthur Fleck meets his match in fellow Arkham patient Harleen Quinzel. Joaquin Phoenix and Lady Gaga star in Todd Phillips' musical sequel.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Ghostbusters: Frozen Empire",
+                    criticsScore: 43,
+                    audienceScore: 83,
+                    imdbRating: 6.1,
+                    year: 2024,
+                    month: "March",
+                    duration: "115 min",
+                    description: "The Spengler family returns to the iconic New York firehouse and teams up with the original Ghostbusters to save the world from a second Ice Age.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Netflix", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Abigail",
+                    criticsScore: 83,
+                    audienceScore: 84,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "April",
+                    duration: "109 min",
+                    description: "Kidnappers discover their young hostage is the daughter of Dracula. Radio Silence delivers bloody fun with this vampire horror-comedy.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Peacock", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Immaculate",
+                    criticsScore: 71,
+                    audienceScore: 72,
+                    imdbRating: 5.9,
+                    year: 2024,
+                    month: "March",
+                    duration: "89 min",
+                    description: "An American nun discovers dark secrets at a remote Italian convent. Sydney Sweeney produces and stars in this religious horror thriller.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Hulu", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "The Garfield Movie",
+                    criticsScore: 36,
+                    audienceScore: 84,
+                    imdbRating: 6.0,
+                    year: 2024,
+                    month: "May",
+                    duration: "101 min",
+                    description: "The famous lasagna-loving cat embarks on a wild adventure after reuniting with his long-lost father. Chris Pratt voices the iconic feline.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Netflix", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Arthur the King",
+                    criticsScore: 70,
+                    audienceScore: 98,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "March",
+                    duration: "107 min",
+                    description: "An adventure racer adopts a stray dog who joins him on an epic endurance race. Mark Wahlberg stars in this true story of friendship.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Lionsgate+", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Bob Marley: One Love",
+                    criticsScore: 42,
+                    audienceScore: 92,
+                    imdbRating: 6.4,
+                    year: 2024,
+                    month: "February",
+                    duration: "107 min",
+                    description: "The life and music of reggae icon Bob Marley, from his rise to fame to his impact on the world. Kingsley Ben-Adir embodies the legendary musician.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Paramount+", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Venom: The Last Dance",
+                    criticsScore: 41,
+                    audienceScore: 81,
+                    imdbRating: 6.2,
+                    year: 2024,
+                    month: "October",
+                    duration: "109 min",
+                    description: "Eddie and Venom are on the run, hunted by both their worlds. Tom Hardy returns for the final film in the trilogy.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Coming to Digital Soon"]
+                },
+                {
+                    title: "Horizon: An American Saga - Chapter 1",
+                    criticsScore: 49,
+                    audienceScore: 70,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "June",
+                    duration: "181 min",
+                    description: "The American Civil War and expansion westward unfold through multiple storylines. Kevin Costner directs and stars in this epic Western.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Max", "Apple TV", "Amazon Prime"]
+                },
+                {
+                    title: "Miller's Girl",
+                    criticsScore: 26,
+                    audienceScore: 58,
+                    imdbRating: 5.3,
+                    year: 2024,
+                    month: "January",
+                    duration: "93 min",
+                    description: "A creative writing assignment creates a complex relationship between a teacher and his talented student. Jenna Ortega and Martin Freeman star.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Netflix", "Apple TV", "Amazon Prime"]
+                }
+            ],
+            series: [
+                {
+                    title: "Shōgun",
+                    criticsScore: 99,
+                    audienceScore: 93,
+                    imdbRating: 8.7,
+                    year: 2024,
+                    month: "February",
+                    duration: "10 Episodes",
+                    description: "Set in 17th century Japan, an English sailor becomes embroiled in the politics of the ruling class. This epic historical drama features stunning cinematography and meticulous attention to detail. Winner of multiple Emmy Awards including Best Drama Series.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Hulu", "Disney+"]
+                },
+                {
+                    title: "Baby Reindeer",
+                    criticsScore: 99,
+                    audienceScore: 82,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "April",
+                    duration: "7 Episodes",
+                    description: "Richard Gadd's haunting true story about his experience with a female stalker and complex trauma. This limited series is a brave exploration of abuse, obsession, and victimhood. Emmy winner for Best Limited Series.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Fallout",
+                    criticsScore: 94,
+                    audienceScore: 89,
+                    imdbRating: 8.5,
+                    year: 2024,
+                    month: "April",
+                    duration: "8 Episodes",
+                    description: "Based on the beloved video game franchise, survivors navigate the wasteland 200 years after nuclear war. With dark humor and stunning production design, it's a triumph of video game adaptation.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "The Penguin",
+                    criticsScore: 95,
+                    audienceScore: 87,
+                    imdbRating: 8.6,
+                    year: 2024,
+                    month: "September",
+                    duration: "8 Episodes",
+                    description: "Colin Farrell returns as Oswald Cobblepot in this gritty crime drama set after The Batman. Following Penguin's rise through Gotham's criminal underworld with exceptional performances.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Max"]
+                },
+                {
+                    title: "True Detective: Night Country",
+                    criticsScore: 92,
+                    audienceScore: 73,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "January",
+                    duration: "6 Episodes",
+                    description: "Jodie Foster and Kali Reis star as detectives investigating the disappearance of eight scientists in Alaska. A haunting return to form for the anthology series.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max"]
+                },
+                {
+                    title: "Slow Horses (Season 4)",
+                    criticsScore: 98,
+                    audienceScore: 91,
+                    imdbRating: 8.2,
+                    year: 2024,
+                    month: "September",
+                    duration: "6 Episodes",
+                    description: "Gary Oldman returns as Jackson Lamb, leading his team of MI5 rejects through another conspiracy. This season delivers the series' best blend of espionage thrills and dark humor.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "The Bear (Season 3)",
+                    criticsScore: 91,
+                    audienceScore: 72,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "June",
+                    duration: "10 Episodes",
+                    description: "Carmen and the crew navigate running their new fine dining restaurant. While more divisive than previous seasons, it remains a masterclass in character development and cinematography.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["FX", "Hulu"]
+                },
+                {
+                    title: "Hacks (Season 3)",
+                    criticsScore: 100,
+                    audienceScore: 88,
+                    imdbRating: 8.3,
+                    year: 2024,
+                    month: "May",
+                    duration: "9 Episodes",
+                    description: "Deborah and Ava's complex relationship evolves as Deborah's career reaches new heights. Jean Smart continues to deliver one of TV's best performances.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Max"]
+                },
+                {
+                    title: "Pachinko (Season 2)",
+                    criticsScore: 98,
+                    audienceScore: 91,
+                    imdbRating: 8.4,
+                    year: 2024,
+                    month: "August",
+                    duration: "8 Episodes",
+                    description: "The saga of four generations of a Korean family continues with the story moving to WWII-era Osaka. One of television's most emotionally powerful dramas returns in stunning form.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Arcane (Season 2)",
+                    criticsScore: 100,
+                    audienceScore: 96,
+                    imdbRating: 9.0,
+                    year: 2024,
+                    month: "November",
+                    duration: "9 Episodes",
+                    description: "The animated masterpiece concludes with Vi and Jinx's story reaching its climax. Revolutionary animation and storytelling cement this as one of the greatest animated series ever made.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "X-Men '97",
+                    criticsScore: 99,
+                    audienceScore: 94,
+                    imdbRating: 8.8,
+                    year: 2024,
+                    month: "March",
+                    duration: "10 Episodes",
+                    description: "The beloved 90s animated series returns with the X-Men facing new threats. A perfect blend of nostalgia and modern storytelling that honors the original while pushing boundaries.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Disney+"]
+                },
+                {
+                    title: "Industry (Season 3)",
+                    criticsScore: 94,
+                    audienceScore: 83,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "August",
+                    duration: "8 Episodes",
+                    description: "The ruthless world of high finance gets even darker as Pierpoint faces existential threats. HBO's best-kept secret delivers its strongest season yet.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "English Teacher",
+                    criticsScore: 95,
+                    audienceScore: 84,
+                    imdbRating: 7.6,
+                    year: 2024,
+                    month: "September",
+                    duration: "8 Episodes",
+                    description: "Brian Jordan Alvarez stars as a gay high school teacher navigating modern education's culture wars. A biting and hilarious new comedy that tackles contemporary issues with heart.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["FX", "Hulu"]
+                },
+                {
+                    title: "Mr. & Mrs. Smith",
+                    criticsScore: 87,
+                    audienceScore: 68,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "February",
+                    duration: "8 Episodes",
+                    description: "Donald Glover and Maya Erskine star as spy-assassins in an arranged marriage. A stylish reimagining that focuses on relationship dynamics as much as action.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Ripley",
+                    criticsScore: 86,
+                    audienceScore: 76,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "April",
+                    duration: "8 Episodes",
+                    description: "Andrew Scott mesmerizes as Tom Ripley in this black-and-white neo-noir adaptation. Steven Zaillian crafts a hypnotic psychological thriller that's both beautiful and chilling.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Diplomat (Season 2)",
+                    criticsScore: 84,
+                    audienceScore: 71,
+                    imdbRating: 7.6,
+                    year: 2024,
+                    month: "October",
+                    duration: "6 Episodes",
+                    description: "Keri Russell returns as the US Ambassador to the UK facing international conspiracies. Political intrigue meets personal drama in this smart thriller.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Boys (Season 4)",
+                    criticsScore: 81,
+                    audienceScore: 73,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "June",
+                    duration: "8 Episodes",
+                    description: "The satirical superhero series gets even darker as Homelander's power grows. While divisive, it remains one of TV's most provocative shows.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "House of the Dragon (Season 2)",
+                    criticsScore: 77,
+                    audienceScore: 73,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "June",
+                    duration: "8 Episodes",
+                    description: "The Dance of Dragons begins as the Targaryen civil war escalates. While slower-paced than Season 1, it delivers spectacular dragon battles and political intrigue.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Presumed Innocent",
+                    criticsScore: 77,
+                    audienceScore: 83,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "June",
+                    duration: "8 Episodes",
+                    description: "Jake Gyllenhaal stars as a prosecutor accused of murdering his colleague and mistress. David E. Kelley delivers a gripping legal thriller that keeps you guessing until the end.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Black Doves",
+                    criticsScore: 92,
+                    audienceScore: 81,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "December",
+                    duration: "6 Episodes",
+                    description: "Keira Knightley stars as a spy whose secret lover is assassinated. Ben Whishaw co-stars in this stylish British thriller blending multiple genres.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Nobody Wants This",
+                    criticsScore: 94,
+                    audienceScore: 78,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "September",
+                    duration: "10 Episodes",
+                    description: "Kristen Bell and Adam Brody's chemistry anchors this rom-com about an agnostic podcaster and a rabbi. A refreshing take on interfaith romance.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Fargo (Season 5)",
+                    criticsScore: 93,
+                    audienceScore: 88,
+                    imdbRating: 8.1,
+                    year: 2024,
+                    month: "January",
+                    duration: "10 Episodes",
+                    description: "Juno Temple and Jon Hamm lead the latest installment of Noah Hawley's anthology. Set in 2019 Minnesota, a housewife's past catches up with her.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["FX", "Hulu"]
+                },
+                {
+                    title: "Matlock",
+                    criticsScore: 97,
+                    audienceScore: 85,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "September",
+                    duration: "9 Episodes",
+                    description: "Kathy Bates reinvents the classic legal drama as a septuagenarian lawyer with a secret agenda. A clever reboot that surprises at every turn.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["CBS", "Paramount+"]
+                },
+                {
+                    title: "Dead Boy Detectives",
+                    criticsScore: 92,
+                    audienceScore: 89,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "April",
+                    duration: "8 Episodes",
+                    description: "Two ghost teenagers solve supernatural mysteries in this Sandman universe spin-off. A charming blend of horror, humor, and heart.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Colin from Accounts (Season 2)",
+                    criticsScore: 100,
+                    audienceScore: 87,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "May",
+                    duration: "8 Episodes",
+                    description: "The Australian rom-com returns with Ashley and Gordon navigating their relationship while co-parenting their dog. Perfectly awkward and genuinely hilarious.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Paramount+", "Binge"]
+                },
+                {
+                    title: "Somebody Somewhere (Season 3)",
+                    criticsScore: 100,
+                    audienceScore: 92,
+                    imdbRating: 8.1,
+                    year: 2024,
+                    month: "October",
+                    duration: "7 Episodes",
+                    description: "Bridget Everett's heartfelt comedy concludes with Sam finding her place in small-town Kansas. A perfect ending to one of TV's most authentic shows.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Evil (Season 4)",
+                    criticsScore: 97,
+                    audienceScore: 88,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "May",
+                    duration: "14 Episodes",
+                    description: "The supernatural procedural reaches new heights of weirdness in its final season. Mike Colter and Katja Herbers lead this underrated gem to a satisfying conclusion.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Paramount+"]
+                },
+                {
+                    title: "Heartstopper (Season 3)",
+                    criticsScore: 100,
+                    audienceScore: 91,
+                    imdbRating: 8.3,
+                    year: 2024,
+                    month: "October",
+                    duration: "8 Episodes",
+                    description: "Nick and Charlie's relationship deepens as the series tackles more mature themes. The beloved LGBTQ+ romance maintains its warmth while growing up.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "One Day",
+                    criticsScore: 91,
+                    audienceScore: 86,
+                    imdbRating: 8.1,
+                    year: 2024,
+                    month: "February",
+                    duration: "14 Episodes",
+                    description: "Leo Woodall and Ambika Mod star in this adaptation of David Nicholls' novel. Following two people over 20 years, it's a devastating meditation on love and timing.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "My Lady Jane",
+                    criticsScore: 94,
+                    audienceScore: 82,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "June",
+                    duration: "8 Episodes",
+                    description: "A fantastical reimagining of Lady Jane Grey's story with shapeshifters and romance. Canceled too soon, this witty historical fantasy deserved better.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Agatha All Along",
+                    criticsScore: 82,
+                    audienceScore: 81,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "September",
+                    duration: "9 Episodes",
+                    description: "Kathryn Hahn returns as Agatha Harkness on the Witches' Road. Marvel's campiest show embraces its witchy weirdness with musical numbers and genuine emotion.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Disney+"]
+                },
+                {
+                    title: "Doctor Who (Season 14)",
+                    criticsScore: 81,
+                    audienceScore: 65,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "May",
+                    duration: "8 Episodes",
+                    description: "Ncuti Gatwa's first full season as the Fifteenth Doctor brings fresh energy to the franchise. Russell T Davies returns with bold, divisive storytelling choices.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["BBC", "Disney+"]
+                },
+                {
+                    title: "Girls5eva (Season 3)",
+                    criticsScore: 100,
+                    audienceScore: 79,
+                    imdbRating: 7.6,
+                    year: 2024,
+                    month: "March",
+                    duration: "6 Episodes",
+                    description: "The former girl group continues their comeback journey. This underrated comedy remains one of TV's sharpest satires of fame and nostalgia.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Griselda",
+                    criticsScore: 87,
+                    audienceScore: 71,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "January",
+                    duration: "6 Episodes",
+                    description: "Sofia Vergara transforms as Colombian drug lord Griselda Blanco. A compelling crime drama that showcases Vergara's dramatic range.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Supacell",
+                    criticsScore: 100,
+                    audienceScore: 85,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "June",
+                    duration: "6 Episodes",
+                    description: "Black Londoners develop superpowers in this fresh take on the superhero genre. Rapman's series blends social commentary with thrilling action.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Regime",
+                    criticsScore: 71,
+                    audienceScore: 58,
+                    imdbRating: 6.7,
+                    year: 2024,
+                    month: "March",
+                    duration: "6 Episodes",
+                    description: "Kate Winslet plays an increasingly paranoid dictator in this political satire. While uneven, Winslet's committed performance makes it worth watching.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Feud: Capote vs. The Swans",
+                    criticsScore: 76,
+                    audienceScore: 53,
+                    imdbRating: 6.9,
+                    year: 2024,
+                    month: "January",
+                    duration: "8 Episodes",
+                    description: "Tom Hollander embodies Truman Capote in Ryan Murphy's latest. The story of high society betrayal features stellar performances from its ensemble cast.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["FX", "Hulu"]
+                },
+                {
+                    title: "The Sympathizer",
+                    criticsScore: 85,
+                    audienceScore: 67,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "April",
+                    duration: "7 Episodes",
+                    description: "Hoa Xuande stars as a North Vietnamese spy in 1970s Los Angeles. Park Chan-wook brings his visual flair to this ambitious adaptation.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Fellow Travelers",
+                    criticsScore: 95,
+                    audienceScore: 92,
+                    imdbRating: 8.3,
+                    year: 2024,
+                    month: "January",
+                    duration: "8 Episodes",
+                    description: "Matt Bomer and Jonathan Bailey star in this decades-spanning gay romance. From McCarthy-era Washington to the AIDS crisis, it's a powerful love story.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Paramount+", "Showtime"]
+                },
+                {
+                    title: "Lessons in Chemistry",
+                    criticsScore: 84,
+                    audienceScore: 88,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "January",
+                    duration: "8 Episodes",
+                    description: "Brie Larson stars as a 1960s scientist turned cooking show host. This feminist period drama balances humor with social commentary.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "The Walking Dead: The Ones Who Live",
+                    criticsScore: 81,
+                    audienceScore: 88,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "February",
+                    duration: "6 Episodes",
+                    description: "Rick and Michonne reunite in this epic love story set in the zombie apocalypse. Andrew Lincoln and Danai Gurira deliver the TWD spinoff fans wanted.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["AMC+"]
+                },
+                {
+                    title: "Avatar: The Last Airbender",
+                    criticsScore: 60,
+                    audienceScore: 76,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "February",
+                    duration: "8 Episodes",
+                    description: "Netflix's live-action adaptation of the beloved animated series. While visually impressive, it struggles to capture the original's magic.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Dune: Prophecy",
+                    criticsScore: 68,
+                    audienceScore: 59,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "November",
+                    duration: "6 Episodes",
+                    description: "Set 10,000 years before Paul Atreides, this prequel explores the origins of the Bene Gesserit. While ambitious, it lacks the films' epic scope.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Expats",
+                    criticsScore: 87,
+                    audienceScore: 65,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "January",
+                    duration: "6 Episodes",
+                    description: "Nicole Kidman leads this drama about expat women in Hong Kong. Lulu Wang creates a meditative exploration of grief and privilege.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "3 Body Problem",
+                    criticsScore: 76,
+                    audienceScore: 73,
+                    imdbRating: 7.6,
+                    year: 2024,
+                    month: "March",
+                    duration: "8 Episodes",
+                    description: "The Game of Thrones creators adapt Liu Cixin's sci-fi epic. While simplified from the source, it delivers spectacular moments and big ideas.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Gentlemen",
+                    criticsScore: 75,
+                    audienceScore: 82,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "March",
+                    duration: "8 Episodes",
+                    description: "Guy Ritchie expands his film into a series with Theo James. British crime meets aristocracy in this stylish if familiar gangster tale.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Hijack",
+                    criticsScore: 87,
+                    audienceScore: 83,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "January",
+                    duration: "7 Episodes",
+                    description: "Idris Elba negotiates with plane hijackers in real-time. This tense thriller keeps you on edge despite some logical leaps.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "The Gilded Age (Season 2)",
+                    criticsScore: 92,
+                    audienceScore: 86,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "October",
+                    duration: "8 Episodes",
+                    description: "Julian Fellowes' American period drama returns with more opulent settings and social climbing. Christine Baranski continues to steal every scene.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "The Morning Show (Season 3)",
+                    criticsScore: 65,
+                    audienceScore: 71,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "September",
+                    duration: "10 Episodes",
+                    description: "Jennifer Aniston and Reese Witherspoon navigate media mergers and personal crises. While messy, the star power keeps it watchable.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Sugar",
+                    criticsScore: 81,
+                    audienceScore: 77,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "April",
+                    duration: "8 Episodes",
+                    description: "Colin Farrell plays a private detective with a sci-fi twist. This neo-noir starts conventional before revealing its wild true nature.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Invincible (Season 2)",
+                    criticsScore: 98,
+                    audienceScore: 90,
+                    imdbRating: 8.7,
+                    year: 2024,
+                    month: "March",
+                    duration: "8 Episodes",
+                    description: "Mark Grayson faces new threats as the animated superhero series gets even more brutal. Steven Yeun anchors this violent, emotional ride.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Percy Jackson and the Olympians",
+                    criticsScore: 92,
+                    audienceScore: 78,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "January",
+                    duration: "8 Episodes",
+                    description: "Disney+ finally gives Rick Riordan's books the adaptation they deserve. Walker Scobell leads this faithful journey through Greek mythology.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Disney+"]
+                },
+                {
+                    title: "Masters of the Air",
+                    criticsScore: 87,
+                    audienceScore: 85,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "January",
+                    duration: "9 Episodes",
+                    description: "From the producers of Band of Brothers comes this WWII bomber crew saga. Austin Butler and Barry Keoghan lead an ensemble through harrowing aerial combat.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "The Veil",
+                    criticsScore: 68,
+                    audienceScore: 73,
+                    imdbRating: 6.8,
+                    year: 2024,
+                    month: "April",
+                    duration: "6 Episodes",
+                    description: "Elisabeth Moss plays an MI6 agent in this international thriller. While well-acted, the convoluted plot undermines the tension.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["FX", "Hulu"]
+                },
+                {
+                    title: "Palm Royale",
+                    criticsScore: 65,
+                    audienceScore: 52,
+                    imdbRating: 6.6,
+                    year: 2024,
+                    month: "March",
+                    duration: "10 Episodes",
+                    description: "Kristen Wiig tries to break into 1960s Palm Beach high society. Despite gorgeous production design and a stellar cast, it never quite finds its tone.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Kaos",
+                    criticsScore: 76,
+                    audienceScore: 69,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "August",
+                    duration: "8 Episodes",
+                    description: "Jeff Goldblum plays Zeus in this modern take on Greek mythology. Despite its creative premise and cast, Netflix canceled it after one season.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Perfect Couple",
+                    criticsScore: 64,
+                    audienceScore: 70,
+                    imdbRating: 6.5,
+                    year: 2024,
+                    month: "September",
+                    duration: "6 Episodes",
+                    description: "Nicole Kidman stars in this Nantucket murder mystery. A glossy beach read adaptation that's entertaining despite its flaws.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Only Murders in the Building (Season 4)",
+                    criticsScore: 93,
+                    audienceScore: 84,
+                    imdbRating: 8.1,
+                    year: 2024,
+                    month: "August",
+                    duration: "10 Episodes",
+                    description: "The trio heads to Hollywood when a murder mystery movie is made about them. Eugene Levy and Eva Longoria join this consistently charming series.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Hulu"]
+                },
+                {
+                    title: "Interior Chinatown",
+                    criticsScore: 91,
+                    audienceScore: 75,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "November",
+                    duration: "10 Episodes",
+                    description: "Jimmy O. Yang stars as a background character trying to become the lead in his own story. A meta-comedy about Asian representation in media.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Hulu"]
+                },
+                {
+                    title: "The Acolyte",
+                    criticsScore: 78,
+                    audienceScore: 18,
+                    imdbRating: 4.5,
+                    year: 2024,
+                    month: "June",
+                    duration: "8 Episodes",
+                    description: "Set in the High Republic era, this Star Wars series explores the dark side's rise. Despite critical approval, fan backlash led to its cancellation.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Disney+"]
+                },
+                {
+                    title: "Elsbeth",
+                    criticsScore: 93,
+                    audienceScore: 88,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "February",
+                    duration: "22 Episodes",
+                    description: "Carrie Preston's quirky lawyer-turned-detective gets her own procedural. A refreshing return to case-of-the-week television done right.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["CBS", "Paramount+"]
+                },
+                {
+                    title: "Criminal Record",
+                    criticsScore: 87,
+                    audienceScore: 73,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "January",
+                    duration: "8 Episodes",
+                    description: "Peter Capaldi and Cush Jumbo clash in this British crime thriller. A tense exploration of institutional racism and police corruption.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Winning Time (Season 2)",
+                    criticsScore: 82,
+                    audienceScore: 75,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "March",
+                    duration: "7 Episodes",
+                    description: "The Lakers dynasty continues in the canceled-too-soon HBO series. John C. Reilly and Quincy Isaiah deliver in this stylish sports drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "The Curse",
+                    criticsScore: 90,
+                    audienceScore: 58,
+                    imdbRating: 7.1,
+                    year: 2024,
+                    month: "January",
+                    duration: "10 Episodes",
+                    description: "Nathan Fielder and Emma Stone star in this surreal satire of gentrification. One of TV's weirdest and most uncomfortable viewing experiences.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Paramount+", "Showtime"]
+                },
+                {
+                    title: "Poker Face",
+                    criticsScore: 98,
+                    audienceScore: 79,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "January",
+                    duration: "10 Episodes",
+                    description: "Natasha Lyonne solves mysteries in Rian Johnson's case-of-the-week series. A throwback to Columbo with modern sensibilities and stellar guest stars.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Peacock"]
+                },
+                {
+                    title: "Reacher (Season 2)",
+                    criticsScore: 98,
+                    audienceScore: 94,
+                    imdbRating: 8.1,
+                    year: 2024,
+                    month: "January",
+                    duration: "8 Episodes",
+                    description: "Alan Ritchson returns as the massive ex-military investigator. Pure action entertainment that knows exactly what it wants to be.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Beef",
+                    criticsScore: 98,
+                    audienceScore: 82,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "April",
+                    duration: "10 Episodes",
+                    description: "Steven Yeun and Ali Wong's road rage incident spirals out of control. A24's dark comedy about anger and class won multiple Emmys.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Echo",
+                    criticsScore: 71,
+                    audienceScore: 63,
+                    imdbRating: 6.6,
+                    year: 2024,
+                    month: "January",
+                    duration: "5 Episodes",
+                    description: "Marvel's first TV-MA series follows Maya Lopez returning to her roots. A grounded, violent departure from typical MCU fare.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Disney+", "Hulu"]
+                },
+                {
+                    title: "The Crown (Season 6 Part 2)",
+                    criticsScore: 77,
+                    audienceScore: 73,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "December",
+                    duration: "6 Episodes",
+                    description: "The royal drama concludes with William at university and Charles marrying Camilla. A divisive but fitting end to Netflix's prestige series.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Curb Your Enthusiasm (Season 12)",
+                    criticsScore: 93,
+                    audienceScore: 88,
+                    imdbRating: 8.5,
+                    year: 2024,
+                    month: "February",
+                    duration: "10 Episodes",
+                    description: "Larry David's comedy concludes after 24 years. The final season delivers classic Curb moments and a perfect ending.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Tracker",
+                    criticsScore: 64,
+                    audienceScore: 89,
+                    imdbRating: 7.2,
+                    year: 2024,
+                    month: "February",
+                    duration: "13 Episodes",
+                    description: "Justin Hartley plays a survivalist who helps find missing people. CBS's surprise hit delivers old-fashioned procedural entertainment.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["CBS", "Paramount+"]
+                },
+                {
+                    title: "Landman",
+                    criticsScore: 52,
+                    audienceScore: 93,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "November",
+                    duration: "10 Episodes",
+                    description: "Billy Bob Thornton stars in Taylor Sheridan's oil industry drama. Critics and audiences are split on this Texas-set series.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Paramount+"]
+                },
+                {
+                    title: "The Rings of Power (Season 2)",
+                    criticsScore: 83,
+                    audienceScore: 65,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "August",
+                    duration: "8 Episodes",
+                    description: "Amazon's Middle-earth saga improves in its second season. Sauron's manipulations and the forging of rings drive the darker storyline.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Silo (Season 2)",
+                    criticsScore: 94,
+                    audienceScore: 86,
+                    imdbRating: 8.1,
+                    year: 2024,
+                    month: "November",
+                    duration: "10 Episodes",
+                    description: "Rebecca Ferguson returns in this dystopian mystery. The world expands as Juliette discovers the truth about the silos.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "Sweetpea",
+                    criticsScore: 77,
+                    audienceScore: 71,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "October",
+                    duration: "6 Episodes",
+                    description: "Ella Purnell plays a wallflower turned serial killer. This British dark comedy offers a fresh take on the female rage genre.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Starz", "Sky"]
+                },
+                {
+                    title: "Bridgerton (Season 3)",
+                    criticsScore: 83,
+                    audienceScore: 79,
+                    imdbRating: 7.5,
+                    year: 2024,
+                    month: "May",
+                    duration: "8 Episodes",
+                    description: "Penelope and Colin's friends-to-lovers romance takes center stage. The Shondaland hit delivers its trademark mix of scandal and swoon.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Franchise",
+                    criticsScore: 75,
+                    audienceScore: 48,
+                    imdbRating: 6.7,
+                    year: 2024,
+                    month: "October",
+                    duration: "8 Episodes",
+                    description: "Armando Iannucci's satire goes behind the scenes of a superhero movie. While clever, it never quite reaches Veep heights.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "A Man in Full",
+                    criticsScore: 53,
+                    audienceScore: 65,
+                    imdbRating: 6.2,
+                    year: 2024,
+                    month: "May",
+                    duration: "6 Episodes",
+                    description: "Jeff Daniels leads David E. Kelley's adaptation of Tom Wolfe's novel. Despite strong performances, it feels dated and overstuffed.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Monarch: Legacy of Monsters",
+                    criticsScore: 88,
+                    audienceScore: 86,
+                    imdbRating: 7.3,
+                    year: 2024,
+                    month: "January",
+                    duration: "10 Episodes",
+                    description: "Kurt Russell and his son Wyatt play the same character across timelines. Apple's Monsterverse series balances kaiju action with family drama.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "From (Season 3)",
+                    criticsScore: 100,
+                    audienceScore: 87,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "September",
+                    duration: "10 Episodes",
+                    description: "The horror mystery continues as the town's residents face new nightmares. Harold Perrineau anchors this underrated genre gem.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["MGM+", "Prime Video"]
+                },
+                {
+                    title: "Sweetbitter (Season 3)",
+                    criticsScore: 88,
+                    audienceScore: 76,
+                    imdbRating: 7.0,
+                    year: 2024,
+                    month: "July",
+                    duration: "6 Episodes",
+                    description: "The restaurant drama returns after years away. A sensual exploration of food, desire, and growing up in New York.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Starz"]
+                },
+                {
+                    title: "Them: The Scare",
+                    criticsScore: 52,
+                    audienceScore: 41,
+                    imdbRating: 5.8,
+                    year: 2024,
+                    month: "April",
+                    duration: "8 Episodes",
+                    description: "The horror anthology moves to 1991 Los Angeles. Despite Deborah Ayorinde's strong performance, it lacks the first season's impact.",
+                    certifiedFresh: false,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Bad Sisters (Season 2)",
+                    criticsScore: 100,
+                    audienceScore: 83,
+                    imdbRating: 7.9,
+                    year: 2024,
+                    month: "November",
+                    duration: "8 Episodes",
+                    description: "The Garvey sisters return with new secrets and dangers. Sharon Horgan's dark comedy maintains its perfect balance of humor and thriller elements.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "What We Do in the Shadows (Season 6)",
+                    criticsScore: 96,
+                    audienceScore: 90,
+                    imdbRating: 8.5,
+                    year: 2024,
+                    month: "October",
+                    duration: "11 Episodes",
+                    description: "The vampire comedy concludes with its funniest season yet. A perfect ending to one of TV's most consistently hilarious shows.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["FX", "Hulu"]
+                },
+                {
+                    title: "Interview with the Vampire (Season 2)",
+                    criticsScore: 98,
+                    audienceScore: 93,
+                    imdbRating: 8.4,
+                    year: 2024,
+                    month: "May",
+                    duration: "8 Episodes",
+                    description: "Louis and Claudia arrive in Paris to join the Theatre des Vampires. AMC's gothic romance reaches new heights of camp and tragedy.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["AMC+"]
+                },
+                {
+                    title: "For All Mankind (Season 4)",
+                    criticsScore: 93,
+                    audienceScore: 84,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "January",
+                    duration: "10 Episodes",
+                    description: "The alternate history space race moves to Mars in 2003. Apple's ambitious sci-fi drama continues to explore what could have been.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "House of Ninjas",
+                    criticsScore: 100,
+                    audienceScore: 82,
+                    imdbRating: 7.4,
+                    year: 2024,
+                    month: "February",
+                    duration: "8 Episodes",
+                    description: "A retired ninja family must return to action in modern Japan. Netflix's stylish action series blends tradition with contemporary thrills.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Gen V",
+                    criticsScore: 96,
+                    audienceScore: 84,
+                    imdbRating: 7.7,
+                    year: 2024,
+                    month: "September",
+                    duration: "8 Episodes",
+                    description: "The Boys spinoff follows young supes at Godolkin University. Just as subversive as its parent show with fresh young talent.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Prime Video"]
+                },
+                {
+                    title: "Blue Eye Samurai",
+                    criticsScore: 100,
+                    audienceScore: 95,
+                    imdbRating: 8.7,
+                    year: 2024,
+                    month: "November",
+                    duration: "8 Episodes",
+                    description: "A mixed-race swordmaster seeks revenge in Edo-period Japan. Netflix's animated masterpiece combines gorgeous visuals with brutal action.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Dept. Q",
+                    criticsScore: 92,
+                    audienceScore: 85,
+                    imdbRating: 7.8,
+                    year: 2024,
+                    month: "May",
+                    duration: "6 Episodes",
+                    description: "A disgraced Danish detective reopens cold cases from a basement office. Netflix's Nordic noir delivers twisty mysteries and dark humor.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "The Studio",
+                    criticsScore: 94,
+                    audienceScore: 78,
+                    imdbRating: 7.6,
+                    year: 2025,
+                    month: "March",
+                    duration: "10 Episodes",
+                    description: "Seth Rogen plays a movie studio head navigating Hollywood chaos. Apple's satire breaks Emmy records for comedy nominations.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "The Pitt",
+                    criticsScore: 95,
+                    audienceScore: 89,
+                    imdbRating: 8.2,
+                    year: 2025,
+                    month: "January",
+                    duration: "15 Episodes",
+                    description: "ER's spiritual successor follows Pittsburgh hospital staff in real-time. Noah Wyle returns to medical drama with gripping intensity.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Dexter: Resurrection",
+                    criticsScore: 89,
+                    audienceScore: 91,
+                    imdbRating: 8.1,
+                    year: 2025,
+                    month: "June",
+                    duration: "10 Episodes",
+                    description: "Michael C. Hall returns as Dexter Morgan in this sequel series. The franchise finds new life exploring Dexter's legacy.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Paramount+", "Showtime"]
+                },
+                {
+                    title: "Severance (Season 2)",
+                    criticsScore: 97,
+                    audienceScore: 92,
+                    imdbRating: 8.8,
+                    year: 2025,
+                    month: "January",
+                    duration: "10 Episodes",
+                    description: "The mind-bending workplace thriller returns after a long wait. Adam Scott leads the innies and outies through even darker revelations.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Apple TV+"]
+                },
+                {
+                    title: "The Last of Us (Season 2)",
+                    criticsScore: 96,
+                    audienceScore: 89,
+                    imdbRating: 8.7,
+                    year: 2025,
+                    month: "April",
+                    duration: "7 Episodes",
+                    description: "Joel and Ellie's journey continues five years later. HBO's adaptation of the controversial game sequel promises more heartbreak.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["HBO", "Max"]
+                },
+                {
+                    title: "Squid Game (Season 2)",
+                    criticsScore: 84,
+                    audienceScore: 88,
+                    imdbRating: 7.9,
+                    year: 2025,
+                    month: "June",
+                    duration: "8 Episodes",
+                    description: "Gi-hun returns to the deadly games seeking revenge. Netflix's phenomenon continues with higher stakes and new players.",
+                    certifiedFresh: true,
+                    verifiedHot: true,
+                    platforms: ["Netflix"]
+                },
+                {
+                    title: "Yellowstone (Final Episodes)",
+                    criticsScore: 71,
+                    audienceScore: 91,
+                    imdbRating: 8.0,
+                    year: 2024,
+                    month: "November",
+                    duration: "6 Episodes",
+                    description: "The Dutton saga concludes without Kevin Costner. Taylor Sheridan's modern western ends with typical dramatic flair.",
+                    certifiedFresh: false,
+                    verifiedHot: true,
+                    platforms: ["Paramount Network"]
+                },
+                {
+                    title: "Star Trek: Strange New Worlds (Season 3)",
+                    criticsScore: 98,
+                    audienceScore: 89,
+                    imdbRating: 8.3,
+                    year: 2025,
+                    month: "April",
+                    duration: "10 Episodes",
+                    description: "Captain Pike's Enterprise continues exploring. The best modern Trek series maintains its episodic excellence.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Paramount+"]
+                },
+                {
+                    title: "Platonic (Season 2)",
+                    criticsScore: 91,
+                    audienceScore: 82,
+                    imdbRating: 7.3,
+                    year: 2025,
+                    month: "February",
+                    duration: "10 Episodes",
+                    description: "Seth Rogen and Rose Byrne's friendship comedy returns. Apple's underrated gem explores platonic relationships with humor and heart.",
+                    certifiedFresh: true,
+                    verifiedHot: false,
+                    platforms: ["Apple TV+"]
+                }
+            ]
+        };
+
+        let currentType = '';
+
+        // Calculate quality score based on our algorithm
+        function calculateQualityScore(item) {
+            // Adjusted to 65% critics, 35% audience for better quality curation
+            let score = (item.criticsScore * 0.65) + (item.audienceScore * 0.35);
+            
+            // Add bonuses
+            if (item.certifiedFresh) score += 4;
+            if (item.verifiedHot) score += 2;
+            
+            // Consistency bonus (if critics and audience agree within 10 points)
+            if (Math.abs(item.criticsScore - item.audienceScore) <= 10) score += 3;
+            
+            // Penalty for large critic/audience gap (populist films with poor critical reception)
+            if (item.audienceScore - item.criticsScore > 30) score -= 3;
+            
+            return Math.min(100, Math.round(score));
+        }
+
+        // Determine rarity based on quality score
+        function getRarity(score) {
+            if (score >= 96) return { tier: 'legendary', label: '⚜️ LEGENDARY', icon: '💎' };
+            if (score >= 93) return { tier: 'mythic', label: '✨ MYTHIC', icon: '🔮' };
+            if (score >= 90) return { tier: 'epic', label: '⭐ EPIC', icon: '💜' };
+            if (score >= 86) return { tier: 'rare', label: '◆ RARE', icon: '💙' };
+            return { tier: 'uncommon', label: '● UNCOMMON', icon: '💚' };
+        }
+
+        // Create floating particles
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Create legendary particles effect
+        function createLegendaryParticles() {
+            const container = document.getElementById('legendaryParticles');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'legendary-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.bottom = '0';
+                particle.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        function openLootbox(type) {
+            currentType = type;
+            const selectionScreen = document.getElementById('selectionScreen');
+            const lootboxContainer = document.getElementById('lootboxContainer');
+            
+            selectionScreen.style.display = 'none';
+            lootboxContainer.style.display = 'flex';
+            
+            // Pre-select the content to determine rarity
+            const contentList = type === 'movie' ? content.movies : content.series;
+            const highQuality = contentList.filter(item => calculateQualityScore(item) >= 83);
+            const selected = highQuality[Math.floor(Math.random() * highQuality.length)];
+            const qualityScore = calculateQualityScore(selected);
+            const rarity = getRarity(qualityScore);
+            
+            // Add rarity glow to lootbox
+            const lootbox = document.getElementById('lootbox');
+            if (rarity.tier === 'legendary') {
+                lootbox.style.boxShadow = '0 0 100px rgba(255,215,0,0.6)';
+            } else if (rarity.tier === 'mythic') {
+                lootbox.style.boxShadow = '0 0 80px rgba(255,0,255,0.5)';
+            } else if (rarity.tier === 'epic') {
+                lootbox.style.boxShadow = '0 0 60px rgba(156,39,176,0.4)';
+            }
+            
+            // Store selected item for later use
+            window.selectedContent = selected;
+            
+            // Simulate loading and then show result
+            setTimeout(() => {
+                showResultWithPreselected(type, selected);
+            }, 3000);
+        }
+
+        function showResult(type, selected) {
+            const lootboxContainer = document.getElementById('lootboxContainer');
+            const resultCard = document.getElementById('resultCard');
+            
+            // Calculate quality score and rarity
+            const qualityScore = calculateQualityScore(selected);
+            const rarity = getRarity(qualityScore);
+            
+            // Clear previous rarity classes
+            resultCard.className = 'result-card';
+            const qualityScoreElement = document.getElementById('qualityScore');
+            qualityScoreElement.className = 'quality-score';
+            const rarityBadge = document.getElementById('rarityBadge');
+            rarityBadge.className = 'rarity-badge';
+            
+            // Apply rarity styling
+            resultCard.classList.add(rarity.tier);
+            qualityScoreElement.classList.add(rarity.tier);
+            rarityBadge.classList.add(rarity.tier);
+            
+            // Update rarity badge
+            rarityBadge.innerHTML = rarity.label;
+            rarityBadge.style.display = 'flex';
+            
+            // Update content
+            document.getElementById('contentBadge').textContent = type.toUpperCase();
+            document.getElementById('contentTitle').textContent = selected.title;
+            
+            // Show both critic and audience scores
+            const ratingText = `Critics: ${selected.criticsScore}% | Audience: ${selected.audienceScore}%`;
+            document.getElementById('contentRating').textContent = ratingText;
+            
+            // Show quality score with icon
+            qualityScoreElement.innerHTML = `<span style="font-size: 1.3em;">${rarity.icon}</span><span><strong>${qualityScore}</strong></span>`;
+            
+            document.getElementById('contentYear').textContent = selected.year;
+            document.getElementById('contentDuration').textContent = selected.duration;
+            document.getElementById('contentDescription').textContent = selected.description;
+            
+            // Update release info
+            const releaseInfo = document.getElementById('releaseInfo');
+            releaseInfo.innerHTML = `<span class="release-badge">${selected.month} ${selected.year}</span>`;
+            
+            // Add legendary particles if legendary
+            if (rarity.tier === 'legendary') {
+                createLegendaryParticles();
+                document.getElementById('legendaryParticles').style.display = 'block';
+            } else {
+                document.getElementById('legendaryParticles').style.display = 'none';
+            }
+            
+            // Show burst animation
+            createBurst();
+            
+            // Transition to result
+            lootboxContainer.style.display = 'none';
+            resultCard.style.display = 'block';
+        }
+
+        function showResultWithPreselected(type, selected) {
+            const lootboxContainer = document.getElementById('lootboxContainer');
+            const resultCard = document.getElementById('resultCard');
+            
+            // Calculate quality score and rarity
+            const qualityScore = calculateQualityScore(selected);
+            const rarity = getRarity(qualityScore);
+            
+            // Clear previous rarity classes
+            resultCard.className = 'result-card';
+            const qualityScoreElement = document.getElementById('qualityScore');
+            qualityScoreElement.className = 'quality-score';
+            const rarityBadge = document.getElementById('rarityBadge');
+            rarityBadge.className = 'rarity-badge';
+            
+            // Apply rarity styling
+            resultCard.classList.add(rarity.tier);
+            qualityScoreElement.classList.add(rarity.tier);
+            rarityBadge.classList.add(rarity.tier);
+            
+            // Update rarity badge
+            rarityBadge.innerHTML = rarity.label;
+            rarityBadge.style.display = 'flex';
+            
+            // Update content
+            document.getElementById('contentBadge').textContent = type.toUpperCase();
+            document.getElementById('contentTitle').textContent = selected.title;
+            
+            // Show both critic and audience scores
+            const ratingText = `Critics: ${selected.criticsScore}% | Audience: ${selected.audienceScore}%`;
+            document.getElementById('contentRating').textContent = ratingText;
+            
+            // Show quality score with icon
+            qualityScoreElement.innerHTML = `<span>${rarity.icon}</span><span>Score: ${qualityScore}</span>`;
+            
+            document.getElementById('contentYear').textContent = selected.year;
+            document.getElementById('contentDuration').textContent = selected.duration;
+            document.getElementById('contentDescription').textContent = selected.description;
+            
+            // Update release info
+            const releaseInfo = document.getElementById('releaseInfo');
+            releaseInfo.innerHTML = `<span class="release-badge">${selected.month} ${selected.year}</span>`;
+            
+            // Add legendary particles if legendary
+            if (rarity.tier === 'legendary') {
+                createLegendaryParticles();
+                document.getElementById('legendaryParticles').style.display = 'block';
+            } else {
+                document.getElementById('legendaryParticles').style.display = 'none';
+            }
+            
+            // Show burst animation
+            createBurst();
+            
+            // Transition to result
+            lootboxContainer.style.display = 'none';
+            resultCard.style.display = 'block';
+        }
+
+        function showResult(type) {
+            const lootboxContainer = document.getElementById('lootboxContainer');
+            const resultCard = document.getElementById('resultCard');
+            const contentList = type === 'movie' ? content.movies : content.series;
+            
+            // Filter for high quality scores (83+)
+            const highQuality = contentList.filter(item => calculateQualityScore(item) >= 83);
+            
+            // Random selection from high quality content
+            const selected = highQuality[Math.floor(Math.random() * highQuality.length)];
+            
+            // Calculate quality score and rarity
+            const qualityScore = calculateQualityScore(selected);
+            const rarity = getRarity(qualityScore);
+            
+            // Clear previous rarity classes
+            resultCard.className = 'result-card';
+            const qualityScoreElement = document.getElementById('qualityScore');
+            qualityScoreElement.className = 'quality-score';
+            const rarityBadge = document.getElementById('rarityBadge');
+            rarityBadge.className = 'rarity-badge';
+            
+            // Apply rarity styling
+            resultCard.classList.add(rarity.tier);
+            qualityScoreElement.classList.add(rarity.tier);
+            rarityBadge.classList.add(rarity.tier);
+            
+            // Update rarity badge
+            rarityBadge.innerHTML = rarity.label;
+            rarityBadge.style.display = 'flex';
+            
+            // Update content
+            document.getElementById('contentBadge').textContent = type.toUpperCase();
+            document.getElementById('contentTitle').textContent = selected.title;
+            
+            // Show both critic and audience scores
+            const ratingText = `Critics: ${selected.criticsScore}% | Audience: ${selected.audienceScore}%`;
+            document.getElementById('contentRating').textContent = ratingText;
+            
+            // Show quality score with icon
+            qualityScoreElement.innerHTML = `<span>${rarity.icon}</span><span>Score: ${qualityScore}</span>`;
+            
+            document.getElementById('contentYear').textContent = selected.year;
+            document.getElementById('contentDuration').textContent = selected.duration;
+            document.getElementById('contentDescription').textContent = selected.description;
+            
+            // Update release info
+            const releaseInfo = document.getElementById('releaseInfo');
+            releaseInfo.innerHTML = `<span class="release-badge">${selected.month} ${selected.year}</span>`;
+            
+            // Add legendary particles if legendary
+            if (rarity.tier === 'legendary') {
+                createLegendaryParticles();
+                document.getElementById('legendaryParticles').style.display = 'block';
+            } else {
+                document.getElementById('legendaryParticles').style.display = 'none';
+            }
+            
+            // Show burst animation
+            createBurst();
+            
+            // Transition to result
+            lootboxContainer.style.display = 'none';
+            resultCard.style.display = 'block';
+        }
+
+        function createBurst() {
+            const burst = document.getElementById('burst');
+            burst.style.display = 'block';
+            burst.innerHTML = '';
+            
+            // Get rarity color based on selected content
+            let particleColor = '#667eea'; // default
+            if (window.selectedContent) {
+                const qualityScore = calculateQualityScore(window.selectedContent);
+                const rarity = getRarity(qualityScore);
+                
+                if (rarity.tier === 'legendary') particleColor = '#FFD700';
+                else if (rarity.tier === 'mythic') particleColor = '#FF00FF';
+                else if (rarity.tier === 'epic') particleColor = '#9C27B0';
+                else if (rarity.tier === 'rare') particleColor = '#2196F3';
+                else if (rarity.tier === 'uncommon') particleColor = '#4CAF50';
+            }
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'burst-particle';
+                particle.style.background = particleColor;
+                particle.style.boxShadow = `0 0 6px ${particleColor}`;
+                const angle = (Math.PI * 2 * i) / 30;
+                const distance = 200 + Math.random() * 100;
+                particle.style.setProperty('--x', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--y', Math.sin(angle) * distance + 'px');
+                particle.style.animation = 'burst-out 1s ease-out forwards';
+                burst.appendChild(particle);
+            }
+            
+            setTimeout(() => {
+                burst.style.display = 'none';
+            }, 1000);
+        }
+
+        function watchNow() {
+            alert('Available on: Apple TV+, Netflix, Amazon Prime, Hulu, Max, Disney+, and other premium streaming platforms.');
+        }
+
+        function showModal() {
+            document.getElementById('modalOverlay').style.display = 'block';
+            document.getElementById('modalContent').style.display = 'block';
+        }
+
+        function hideModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.getElementById('modalContent').style.display = 'none';
+        }
+
+        // Initialize particles on load
+        createParticles();
+    </script>
+</body>
+</html>

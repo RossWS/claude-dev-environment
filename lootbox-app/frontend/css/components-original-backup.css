@@ -39,13 +39,6 @@
     max-width: 800px;
     padding: var(--space-4);
     text-align: center;
-    min-height: 0; /* Ensure flex child doesn't grow infinitely */
-}
-
-/* Extra padding for screens that may contain mythic cards */
-#resultScreen.game-container,
-#selectionScreen.game-container {
-    padding: calc(var(--space-4) + 10px); /* Extra padding for mythic card animations */
 }
 
 .game-header {
@@ -262,8 +255,6 @@
     display: flex;
     gap: var(--space-4);
     justify-content: center;
-    margin-top: var(--space-8);
-    padding-top: var(--space-6);
 }
 
 /* Top Controls Container */
@@ -406,93 +397,11 @@
     color: var(--text-secondary);
 }
 
-/* Card Detail Modal */
-#cardDetailModal.modal-overlay {
-    padding: 130px !important; /* Calculated for 360° rotation: diagonal(320x450) = 552px, need 116px + safety margin */
-    box-sizing: border-box;
-    overflow: hidden !important; /* Prevent any scrollbars from mythic animations */
-}
-
-/* Ensure modal content doesn't override on mobile */
-@media (max-width: 480px) {
-    #cardDetailModal.modal-overlay {
-        padding: 90px 20px !important; /* 90px top/bottom for rotation, 20px left/right */
-    }
-    
-    #cardDetailModal .card-modal-content {
-        margin: 0 !important;
-        padding: 0 !important;
-        max-width: none !important;
-        width: auto !important;
-    }
-    
-    #cardDetailModal #modalCard {
-        width: 280px !important; /* Use mobile card size */
-        transform: scale(0.9); /* Slightly smaller to fit with rotation */
-    }
-}
-
-/* For very small screens */
-@media (max-width: 400px) {
-    #cardDetailModal.modal-overlay {
-        padding: 10px !important;
-    }
-    
-    #cardDetailModal #modalCard {
-        width: 240px !important;
-        transform: scale(0.8);
-    }
-}
-
-.card-modal-content {
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    padding: 0; /* No additional padding - already handled by modal overlay */
-    max-width: none; /* Let card size naturally */
-    width: auto;
-    max-height: none; /* Remove height restriction */
-    overflow: visible; /* Allow mythic animations to show */
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.card-modal-body {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-}
-
-/* Modal card adjustments - remove line clamp for full description */
-#modalCard {
-    margin: 0;
-    width: 320px;
-    height: auto;
-    min-height: 450px;
-}
-
-#modalCard .collectible-description-text {
-    -webkit-line-clamp: unset;
-    max-height: none;
-    overflow: visible;
-    display: block;
-    -webkit-box-orient: unset;
-}
-
-#modalCard .collectible-card-description {
-    max-height: none;
-    min-height: auto;
-    flex: none;
-}
-
 /* Trophy Cabinet */
 .trophy-container {
     width: 100%;
     max-width: 1200px;
     padding: var(--space-4);
-    overflow-x: hidden; /* Prevent horizontal scrollbars from mythic animations */
 }
 
 .trophy-header {
@@ -822,7 +731,6 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: var(--space-6);
     margin-bottom: var(--space-8);
-    padding: 10px; /* Extra padding to prevent mythic card overflow */
 }
 
 .rarity-section {
@@ -1097,7 +1005,6 @@
     grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: var(--space-4);
     margin-bottom: var(--space-8);
-    padding: 10px; /* Extra padding to prevent mythic card overflow */
 }
 
 .admin-content-item {
@@ -1769,35 +1676,8 @@
 .showcase-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--space-6);
+    gap: var(--space-4);
     margin-bottom: var(--space-8);
-    align-items: start; /* Prevent cards from stretching to match tallest */
-    padding: 10px; /* Extra padding to prevent mythic card overflow */
-}
-
-.showcase-item {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: var(--space-4);
-}
-
-.showcase-position-badge {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 1rem;
-    margin-bottom: var(--space-3);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    border: 3px solid rgba(255,255,255,0.2);
-    flex-shrink: 0;
 }
 
 .showcase-card {
@@ -2239,7 +2119,6 @@
     
     .showcase-grid {
         grid-template-columns: 1fr;
-        gap: var(--space-4);
     }
     
     .available-cards {
@@ -2330,26 +2209,6 @@
     .top-up-btn {
         font-size: var(--font-size-xs);
         padding: var(--space-1) var(--space-3);
-    }
-    
-    /* Collectible card mobile adjustments */
-    .collectible-card {
-        width: 100%;
-        max-width: 320px;
-        margin: 0 auto;
-    }
-    
-    .collectible-card.small {
-        max-width: 280px;
-    }
-    
-    .collectible-card.mini {
-        max-width: 220px;
-    }
-    
-    /* Ensure result screen cards don't break on mobile */
-    #resultScreen .collectible-card {
-        margin: 0 auto var(--space-4) auto;
     }
 }
 

@@ -10,7 +10,11 @@ CREATE TABLE users (
     daily_spins_used INTEGER DEFAULT 0,
     daily_spins_reset_date DATE DEFAULT CURRENT_DATE,
     admin_override_spins INTEGER DEFAULT 0,
+    profile_public BOOLEAN DEFAULT FALSE,
+    show_stats BOOLEAN DEFAULT TRUE,
+    show_activity BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP
 );
 
@@ -69,6 +73,20 @@ CREATE TABLE user_spins (
     FOREIGN KEY (content_id) REFERENCES content(id) ON DELETE CASCADE
 );
 
+-- User showcase (top 5 featured items)
+CREATE TABLE user_showcase (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    unlock_id INTEGER NOT NULL,
+    position INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (unlock_id) REFERENCES user_unlocks(id) ON DELETE CASCADE,
+    UNIQUE(user_id, unlock_id), -- Prevent duplicate showcase items
+    UNIQUE(user_id, position) -- Prevent duplicate positions
+);
+
 -- Admin settings and overrides
 CREATE TABLE admin_settings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -100,6 +118,7 @@ CREATE INDEX idx_content_date_added ON content(date_added);
 CREATE INDEX idx_content_quality_score ON content(quality_score);
 CREATE INDEX idx_user_unlocks_user_id ON user_unlocks(user_id);
 CREATE INDEX idx_user_spins_user_date ON user_spins(user_id, spin_date);
+CREATE INDEX idx_user_showcase_user_id ON user_showcase(user_id);
 CREATE INDEX idx_content_lookup_status ON content_lookup_queue(status);
 
 -- Insert default admin settings

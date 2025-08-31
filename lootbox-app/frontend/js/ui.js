@@ -24,6 +24,14 @@ class UIManager {
         
         // Set initial screen based on auth state
         this.setInitialScreen();
+        
+        // Adjust card descriptions on window resize
+        window.addEventListener('resize', Utils.debounce(() => {
+            this.adjustCardDescriptions();
+        }, 250));
+        
+        // Initialize card detail modal
+        this.initializeCardDetailModal();
     }
 
     initializeNavigation() {
@@ -34,15 +42,28 @@ class UIManager {
         const adminBtn = document.getElementById('adminBtn');
 
         if (loginBtn) {
-            loginBtn.addEventListener('click', () => this.showScreen('login'));
+            loginBtn.addEventListener('click', () => {
+                if (window.router) {
+                    window.router.navigate('/login');
+                }
+            });
         }
 
         if (registerBtn) {
-            registerBtn.addEventListener('click', () => this.showScreen('register'));
+            registerBtn.addEventListener('click', () => {
+                if (window.router) {
+                    window.router.navigate('/register');
+                }
+            });
         }
 
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => this.handleLogout());
+        }
+
+        const profileBtn = document.getElementById('profileBtn');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', () => this.showProfileScreen());
         }
 
         if (trophyBtn) {
@@ -85,33 +106,42 @@ class UIManager {
     }
 
     setInitialScreen() {
-        if (authManager.isAuthenticated) {
-            this.showScreen('game');
-            this.updateNavigation(true);
-        } else {
-            this.showScreen('login');
-            this.updateNavigation(false);
-        }
+        // Let the router handle initial screen - don't do anything here
+        console.log('🔧 UI: Router will handle initial screen');
     }
 
     showScreen(screenName) {
-        const screens = document.querySelectorAll('.screen');
+        console.log('🔧 UI: showScreen called with:', screenName);
         
+        const screens = document.querySelectorAll('.screen');
+        console.log('🔧 UI: Found screens:', screens.length);
+        
+        // Clean reset of all screens - remove both classes and inline styles
         screens.forEach(screen => {
             screen.classList.add('hidden');
+            screen.style.display = ''; // Clear any inline display styles
+            console.log('🔧 UI: Hiding screen and clearing inline styles:', screen.id);
         });
 
         const targetScreen = document.getElementById(`${screenName}Screen`);
+        console.log('🔧 UI: Target screen:', targetScreen?.id);
+        
         if (targetScreen) {
             targetScreen.classList.remove('hidden');
+            targetScreen.style.display = ''; // Clear any conflicting inline styles
             this.currentScreen = screenName;
+            console.log('🔧 UI: Showing screen:', targetScreen.id);
             
             // Screen-specific initialization
             this.onScreenShow(screenName);
+        } else {
+            console.error('🔧 UI: Target screen not found:', `${screenName}Screen`);
         }
     }
 
     onScreenShow(screenName) {
+        console.log('🔧 UI: onScreenShow called with:', screenName);
+        
         switch (screenName) {
             case 'game':
                 // Initialize discoverybox game if not already done
@@ -126,45 +156,60 @@ class UIManager {
                 // Load trophies when trophy screen is shown
                 trophyCabinet.loadTrophies(1);
                 break;
+                
+            case 'profile':
+                // Load profile data when profile screen is shown
+                if (window.userProfile) {
+                    window.userProfile.loadProfileData();
+                }
+                break;
+                
+            case 'admin':
+                // Admin screen initialization handled separately
+                console.log('🔧 UI: Admin screen initialized');
+                break;
         }
     }
 
     showTrophyScreen() {
-        if (!authManager.isAuthenticated) {
-            this.showNotification('Please login to view your trophies', 'warning');
-            return;
+        console.log('🔧 UI: Navigating to trophies via router');
+        if (window.router) {
+            window.router.navigate('/trophies');
         }
-        
-        this.showScreen('trophy');
+    }
+
+    showProfileScreen() {
+        console.log('🔧 UI: Navigating to profile via router');
+        if (window.router) {
+            window.router.navigate('/profile');
+        }
     }
 
     showAdminScreen() {
-        if (!authManager.isAuthenticated) {
-            this.showNotification('Please login to access admin panel', 'warning');
-            return;
-        }
-        
-        if (!authManager.hasPermission('admin')) {
-            this.showNotification('Access denied: Admin permissions required', 'error');
-            return;
-        }
-        
-        // Call the admin panel's show method
-        if (window.adminPanel) {
-            window.adminPanel.showAdminScreen();
+        console.log('🔧 UI: Navigating to admin via router');
+        if (window.router) {
+            window.router.navigate('/admin');
         }
     }
 
     onUserLogin(user) {
         this.updateNavigation(true);
-        this.showScreen('game');
         this.showNotification(`Welcome back, ${user.username}!`, 'success');
+        
+        // Navigate to game via router
+        if (window.router) {
+            window.router.navigate('/game');
+        }
     }
 
     onUserLogout() {
         this.updateNavigation(false);
-        this.showScreen('login');
         this.showNotification('You have been logged out', 'info');
+        
+        // Navigate to login via router
+        if (window.router) {
+            window.router.navigate('/login');
+        }
     }
 
     async handleLogout() {
@@ -403,6 +448,139 @@ class UIManager {
             
             requestAnimationFrame(animate);
         });
+    }
+
+    // Dynamic card description adjustment
+    adjustCardDescriptions() {
+        const cards = document.querySelectorAll('.collectible-card');
+        
+        cards.forEach(card => {
+            const description = card.querySelector('.collectible-description-text');
+            if (!description) return;
+            
+            const descriptionContainer = card.querySelector('.collectible-card-description');
+            if (!descriptionContainer) return;
+            
+            // Reset any previous adjustments
+            description.style.webkitLineClamp = 'unset';
+            description.style.maxHeight = 'none';
+            
+            // Calculate available space
+            const containerHeight = descriptionContainer.offsetHeight;
+            const containerPadding = parseInt(getComputedStyle(descriptionContainer).paddingTop) + 
+                                   parseInt(getComputedStyle(descriptionContainer).paddingBottom);
+            const availableHeight = containerHeight - containerPadding;
+            
+            // Get line height
+            const computedStyle = getComputedStyle(description);
+            const lineHeight = parseFloat(computedStyle.lineHeight);
+            
+            if (isNaN(lineHeight)) return;
+            
+            // Calculate maximum lines that fit
+            const maxLines = Math.floor(availableHeight / lineHeight);
+            const minLines = card.classList.contains('mini') ? 2 : card.classList.contains('small') ? 3 : 4;
+            
+            // Apply dynamic line clamp
+            const lines = Math.max(minLines, Math.min(maxLines, 8)); // Cap at 8 lines max
+            description.style.webkitLineClamp = lines.toString();
+            description.style.display = '-webkit-box';
+            description.style.webkitBoxOrient = 'vertical';
+            description.style.overflow = 'hidden';
+        });
+    }
+
+    // Card Detail Modal System
+    initializeCardDetailModal() {
+        this.cardDetailModal = document.getElementById('cardDetailModal');
+        this.closeCardModalBtn = document.getElementById('closeCardModal');
+        
+        if (this.closeCardModalBtn) {
+            this.closeCardModalBtn.addEventListener('click', () => {
+                this.hideCardDetailModal();
+            });
+        }
+        
+        if (this.cardDetailModal) {
+            this.cardDetailModal.addEventListener('click', (e) => {
+                if (e.target === this.cardDetailModal) {
+                    this.hideCardDetailModal();
+                }
+            });
+        }
+        
+        // Add keyboard listener for escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !this.cardDetailModal.classList.contains('hidden')) {
+                this.hideCardDetailModal();
+            }
+        });
+    }
+    
+    showCardDetailModal(cardData) {
+        if (!this.cardDetailModal) return;
+        
+        this.populateModalCard(cardData);
+        this.cardDetailModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+    }
+    
+    hideCardDetailModal() {
+        if (!this.cardDetailModal) return;
+        
+        this.cardDetailModal.classList.add('hidden');
+        document.body.style.overflow = 'auto'; // Restore scroll
+    }
+    
+    populateModalCard(cardData) {
+        const modalCard = document.getElementById('modalCard');
+        const rarity = Utils.getRarityTier(cardData.quality_score);
+        const contentEmoji = cardData.emoji || (cardData.type === 'series' ? '📺' : '🎬');
+        const contentType = cardData.type === 'series' ? '📺 Series' : '🎬 Movie';
+        const durationLabel = cardData.type === 'series' ? 'Seasons' : 'Runtime';
+        const durationValue = cardData.type === 'series' ? (cardData.seasons || 'N/A') : cardData.duration;
+        
+        // Format year for series
+        let yearDisplay = cardData.year;
+        if (cardData.type === 'series' && cardData.end_year && cardData.end_year !== cardData.year) {
+            yearDisplay = `${cardData.year}-${cardData.end_year}`;
+        }
+        
+        // Clear previous classes and add new rarity
+        modalCard.className = 'collectible-card';
+        modalCard.classList.add(cardData.rarity_tier || rarity.tier);
+        modalCard.setAttribute('data-type', cardData.type);
+        
+        // Populate card elements
+        document.getElementById('modalCardTitle').textContent = cardData.title;
+        document.getElementById('modalCardCost').textContent = cardData.quality_score;
+        document.getElementById('modalCardType').textContent = contentType;
+        document.getElementById('modalRarityGem').textContent = rarity.icon;
+        document.getElementById('modalCardIcon').textContent = contentEmoji;
+        
+        // Stats
+        document.getElementById('modalQualityScore').textContent = cardData.quality_score;
+        document.getElementById('modalCriticsScore').textContent = `${cardData.critics_score || 'N/A'}%`;
+        document.getElementById('modalAudienceScore').textContent = `${cardData.audience_score || 'N/A'}%`;
+        document.getElementById('modalDurationLabel').textContent = durationLabel;
+        document.getElementById('modalDuration').textContent = durationValue;
+        
+        // Description (full text, no truncation)
+        document.getElementById('modalDescription').textContent = cardData.description;
+        
+        // Footer
+        document.getElementById('modalCardYear').textContent = yearDisplay;
+        document.getElementById('modalCardRarity').textContent = (cardData.rarity_tier || rarity.tier).charAt(0).toUpperCase() + (cardData.rarity_tier || rarity.tier).slice(1);
+        
+        // Show unlock time for trophy cards
+        const unlockTimeElement = document.getElementById('modalUnlockTime');
+        if (cardData.unlocked_at) {
+            const unlockedDate = Utils.formatRelativeTime(cardData.unlocked_at);
+            document.getElementById('modalUnlockText').textContent = unlockedDate;
+            unlockTimeElement.classList.remove('hidden');
+        } else {
+            unlockTimeElement.classList.add('hidden');
+        }
     }
 }
 

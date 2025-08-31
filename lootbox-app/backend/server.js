@@ -31,14 +31,21 @@ app.use(helmet());
 app.use(compression());
 
 // CORS configuration - production ready
-const allowedOrigins = process.env.NODE_ENV === 'production' 
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
     ? (process.env.ALLOWED_ORIGINS || '').split(',').map(origin => origin.trim())
-    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000'];
+    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://localhost:8080', 'http://127.0.0.1:8080'];
 
 app.use(cors({
     origin: (origin, callback) => {
         // Allow requests with no origin (mobile apps, postman, etc.)
         if (!origin) return callback(null, true);
+        
+        // In development, allow localhost and 127.0.0.1 with any port
+        if (process.env.NODE_ENV !== 'production') {
+            if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+                return callback(null, true);
+            }
+        }
         
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
@@ -54,8 +61,11 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.'
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 300, // Increased to 300 requests per 15 minutes for normal usage
+    message: 'Too many requests from this IP, please try again later.',
+    // Add more detailed headers for debugging
+    standardHeaders: true,
+    legacyHeaders: false
 });
 app.use('/api/', limiter);
 

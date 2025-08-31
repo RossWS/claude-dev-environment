@@ -135,9 +135,18 @@ class API {
 
     // Lootbox endpoints
     lootbox = {
-        // Open a lootbox
+        // Open a lootbox (automatically uses guest endpoint if not authenticated)
         async open(type) {
-            return api.post('/lootbox/open', { type });
+            if (Utils.storage.get('authToken')) {
+                return api.post('/lootbox/open', { type });
+            } else {
+                return api.post('/lootbox/guest-open', { type }, { includeAuth: false });
+            }
+        },
+
+        // Open a lootbox for guests (no authentication)
+        async guestOpen(type) {
+            return api.post('/lootbox/guest-open', { type }, { includeAuth: false });
         },
 
         // Get spin status

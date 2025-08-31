@@ -9,7 +9,9 @@
     <!-- CSS -->
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/animations.css">
-    <link rel="stylesheet" href="css/components.css?v=3">
+    <link rel="stylesheet" href="css/components.css?v=6">
+    <link rel="stylesheet" href="css/collectible-cards.css?v=1">
+    <link rel="stylesheet" href="css/onboarding.css?v=1">
     <link rel="stylesheet" href="css/themes.css">
     
     <!-- Favicon -->
@@ -32,9 +34,10 @@
                 <button class="nav-btn primary" id="registerBtn" data-screen="register">Register</button>
                 <div class="user-menu hidden" id="userMenu">
                     <span class="username" id="navUsername"></span>
-                    <button class="nav-btn" id="trophyBtn" data-screen="trophy">Trophy Cabinet</button>
-                    <button class="nav-btn admin-only hidden" id="adminBtn" data-screen="admin">Admin Panel</button>
-                    <button class="nav-btn" id="logoutBtn">Logout</button>
+                    <button class="nav-btn" id="profileBtn" data-screen="profile">👤 Profile</button>
+                    <button class="nav-btn" id="trophyBtn" data-screen="trophy">🏆 Trophy Cabinet</button>
+                    <button class="nav-btn admin-only hidden" id="adminBtn" data-screen="admin">⚙️ Admin Panel</button>
+                    <button class="nav-btn" id="logoutBtn">🚪 Logout</button>
                 </div>
             </div>
         </div>
@@ -112,25 +115,96 @@
 
             <!-- Selection Screen -->
             <div class="game-container" id="selectionScreen">
-                <div class="game-header">
-                    <h1 class="main-title">Content Discovery</h1>
-                    <h2 class="sub-title">Choose Your Adventure</h2>
-                </div>
-
-                <div class="choices">
-                    <div class="choice-card" id="movieChoice">
-                        <div class="choice-icon">🎬</div>
-                        <div class="choice-content">
-                            <h3>Movies</h3>
-                            <p>Discover amazing films from blockbusters to hidden gems</p>
+                <div class="hero-section">
+                    <div class="hero-content">
+                        <h1 class="hero-title">Stop Endless Scrolling</h1>
+                        <h2 class="hero-subtitle">Discover only the best movies & shows worth your time</h2>
+                        <div class="hero-features">
+                            <div class="feature-item">
+                                <span class="feature-icon">⭐</span>
+                                <span class="feature-text">Quality Score 1-10 system</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">🎯</span>
+                                <span class="feature-text">No mediocre recommendations</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">⚡</span>
+                                <span class="feature-text">Instant discovery, no account needed</span>
+                            </div>
+                        </div>
+                        <div class="hero-cta">
+                            <button class="btn btn-primary btn-hero" id="tryFirstSpinBtn">
+                                <span class="btn-icon">🎰</span>
+                                Try Your First Spin
+                            </button>
+                            <p class="hero-note">Get your first movie recommendation in 3 seconds</p>
                         </div>
                     </div>
+                    <div class="hero-preview">
+                        <div class="quality-preview">
+                            <h3>Our Quality Score System</h3>
+                            <div class="score-examples">
+                                <div class="score-example mythic">
+                                    <div class="score-badge">9.5</div>
+                                    <div class="score-info">
+                                        <strong>Mythic Tier</strong>
+                                        <span>Masterpiece films</span>
+                                    </div>
+                                </div>
+                                <div class="score-example legendary">
+                                    <div class="score-badge">8.2</div>
+                                    <div class="score-info">
+                                        <strong>Legendary</strong>
+                                        <span>Highly acclaimed</span>
+                                    </div>
+                                </div>
+                                <div class="score-example epic">
+                                    <div class="score-badge">7.1</div>
+                                    <div class="score-info">
+                                        <strong>Epic Tier</strong>
+                                        <span>Great entertainment</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="social-proof">
+                            <div class="proof-stats">
+                                <div class="stat-item">
+                                    <strong>10,000+</strong>
+                                    <span>Movies analyzed</span>
+                                </div>
+                                <div class="stat-item">
+                                    <strong>95%</strong>
+                                    <span>Satisfaction rate</span>
+                                </div>
+                                <div class="stat-item">
+                                    <strong>2.3 hrs</strong>
+                                    <span>Time saved daily</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Content Type Selection (shown after first interaction) -->
+                <div class="content-selection hidden" id="contentTypeSelection">
+                    <h3 class="selection-title">What are you in the mood for?</h3>
+                    <div class="choices">
+                        <div class="choice-card" id="movieChoice">
+                            <div class="choice-icon">🎬</div>
+                            <div class="choice-content">
+                                <h3>Movies</h3>
+                                <p>Discover amazing films from blockbusters to hidden gems</p>
+                            </div>
+                        </div>
 
-                    <div class="choice-card" id="seriesChoice">
-                        <div class="choice-icon">📺</div>
-                        <div class="choice-content">
-                            <h3>TV Series</h3>
-                            <p>Explore captivating series across all genres</p>
+                        <div class="choice-card" id="seriesChoice">
+                            <div class="choice-icon">📺</div>
+                            <div class="choice-content">
+                                <h3>TV Series</h3>
+                                <p>Explore captivating series across all genres</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,40 +227,55 @@
 
             <!-- Result Screen -->
             <div class="game-container hidden" id="resultScreen">
-                <div class="result-card" id="resultCard">
-                    <div class="result-header">
-                        <div class="content-badge" id="contentBadge"></div>
-                        <div class="rarity-badge" id="rarityBadge"></div>
-                        <div class="unlock-status" id="unlockStatus"></div>
-                    </div>
-
-                    <div class="result-content">
-                        <h2 class="content-title" id="contentTitle"></h2>
-                        <div class="content-rating" id="contentRating"></div>
-                        <div class="quality-score" id="qualityScore"></div>
+                <div class="unlock-status-banner" id="unlockStatusBanner"></div>
+                
+                <!-- Collectible Card Display -->
+                <div class="collectible-card unlock-animation" id="resultCollectibleCard">
+                    <div class="collectible-card-inner">
+                        <div class="collectible-card-header">
+                            <div class="collectible-card-title" id="collectibleCardTitle"></div>
+                            <div class="collectible-card-cost" id="collectibleCardCost"></div>
+                        </div>
                         
-                        <div class="content-details">
-                            <div class="detail-row">
-                                <span class="detail-label">Year:</span>
-                                <span class="detail-value" id="contentYear"></span>
+                        <div class="collectible-card-art">
+                            <div class="collectible-card-type" id="collectibleCardType"></div>
+                            <div class="collectible-rarity-gem" id="collectibleRarityGem"></div>
+                            <span id="collectibleCardIcon">🎬</span>
+                        </div>
+                        
+                        <div class="collectible-card-stats">
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label">Quality Score</span>
+                                <span class="collectible-stat-value collectible-quality-score" id="collectibleQualityScore"></span>
                             </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Duration:</span>
-                                <span class="detail-value" id="contentDuration"></span>
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label">Critics</span>
+                                <span class="collectible-stat-value" id="collectibleCriticsScore"></span>
                             </div>
-                            <div class="detail-row">
-                                <span class="detail-label">Release:</span>
-                                <span class="detail-value" id="releaseInfo"></span>
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label">Audience</span>
+                                <span class="collectible-stat-value" id="collectibleAudienceScore"></span>
+                            </div>
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label" id="collectibleDurationLabel">Runtime</span>
+                                <span class="collectible-stat-value" id="collectibleDuration"></span>
                             </div>
                         </div>
-
-                        <div class="content-description" id="contentDescription"></div>
                         
-                        <div class="result-actions">
-                            <button class="btn btn-primary" id="discoverAnotherBtn">Discover Another</button>
-                            <button class="btn btn-secondary" id="viewTrophiesBtn">View Trophies</button>
+                        <div class="collectible-card-description">
+                            <div class="collectible-description-text" id="collectibleDescription"></div>
+                        </div>
+                        
+                        <div class="collectible-card-footer">
+                            <div class="collectible-card-year" id="collectibleCardYear"></div>
+                            <div class="collectible-card-rarity" id="collectibleCardRarity"></div>
                         </div>
                     </div>
+                </div>
+                
+                <div class="result-actions">
+                    <button class="btn btn-primary" id="discoverAnotherBtn">Discover Another</button>
+                    <button class="btn btn-secondary" id="viewTrophiesBtn">View Trophies</button>
                 </div>
             </div>
 
@@ -206,57 +295,87 @@
                 </div>
 
                 <div class="trophy-filters">
-                    <div class="filter-row">
-                        <div class="filter-group">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="groupByRarityToggle">
-                                <span class="toggle-slider"></span>
-                                <span class="toggle-label">Group by Rarity</span>
-                            </label>
+                    <div class="filters-header">
+                        <h3 class="filters-title">Filter & Sort</h3>
+                        <button class="filter-clear-btn" id="clearFiltersBtn" title="Clear all filters">
+                            <span class="clear-icon">🗑️</span>
+                            Clear Filters
+                        </button>
+                    </div>
+
+                    <div class="filters-main">
+                        <div class="filters-row">
+                            <div class="filter-group">
+                                <label class="filter-label" for="typeFilter">Content Type</label>
+                                <div class="select-wrapper">
+                                    <select id="typeFilter" class="filter-select">
+                                        <option value="">All Types</option>
+                                        <option value="movie">🎬 Movies</option>
+                                        <option value="series">📺 TV Series</option>
+                                    </select>
+                                    <span class="select-arrow">▼</span>
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label" for="rarityFilter">Rarity Tier</label>
+                                <div class="select-wrapper">
+                                    <select id="rarityFilter" class="filter-select">
+                                        <option value="">All Rarities</option>
+                                        <option value="mythic">🌟 Mythic</option>
+                                        <option value="legendary">👑 Legendary</option>
+                                        <option value="epic">💎 Epic</option>
+                                        <option value="rare">⭐ Rare</option>
+                                        <option value="uncommon">🔹 Uncommon</option>
+                                        <option value="common">⚪ Common</option>
+                                    </select>
+                                    <span class="select-arrow">▼</span>
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label class="filter-label" for="sortFilter">Sort By</label>
+                                <div class="select-wrapper">
+                                    <select id="sortFilter" class="filter-select">
+                                        <option value="unlock_time">⏰ Recently Unlocked</option>
+                                        <option value="unlock_time_asc">🕘 Oldest Unlocks</option>
+                                        <option value="title_asc">🔤 Title (A-Z)</option>
+                                        <option value="title_desc">🔤 Title (Z-A)</option>
+                                        <option value="release_year">📅 Release Year (Newest)</option>
+                                        <option value="release_year_asc">📅 Release Year (Oldest)</option>
+                                        <option value="quality_score">⭐ Quality Score (High)</option>
+                                        <option value="quality_score_asc">⭐ Quality Score (Low)</option>
+                                        <option value="critics_score">👨‍🎓 Critics Score (High)</option>
+                                        <option value="audience_score">👥 Audience Score (High)</option>
+                                    </select>
+                                    <span class="select-arrow">▼</span>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="filter-group">
-                            <select id="typeFilter">
-                                <option value="">All Types</option>
-                                <option value="movie">Movies</option>
-                                <option value="series">TV Series</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <select id="rarityFilter">
-                                <option value="">All Rarities</option>
-                                <option value="mythic">Mythic</option>
-                                <option value="legendary">Legendary</option>
-                                <option value="epic">Epic</option>
-                                <option value="rare">Rare</option>
-                                <option value="uncommon">Uncommon</option>
-                                <option value="common">Common</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-group">
-                            <select id="sortFilter">
-                                <option value="unlock_time">Recently Unlocked</option>
-                                <option value="unlock_time_asc">Oldest Unlocks</option>
-                                <option value="title_asc">Title (A-Z)</option>
-                                <option value="title_desc">Title (Z-A)</option>
-                                <option value="release_year">Release Year (Newest)</option>
-                                <option value="release_year_asc">Release Year (Oldest)</option>
-                                <option value="quality_score">Quality Score (High)</option>
-                                <option value="quality_score_asc">Quality Score (Low)</option>
-                                <option value="critics_score">Critics Score (High)</option>
-                                <option value="audience_score">Audience Score (High)</option>
-                            </select>
+
+                        <div class="filters-row">
+                            <div class="filter-group toggle-group">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="groupByRarityToggle" checked>
+                                    <span class="toggle-slider"></span>
+                                    <span class="toggle-label">
+                                        <span class="toggle-icon">📊</span>
+                                        Group by Rarity
+                                    </span>
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="filter-row">
+
+                    <div class="filters-footer">
                         <div class="rarity-counters" id="rarityCounters">
                             <!-- Unlock counters will be populated here -->
                         </div>
                         
-                        <button class="btn btn-secondary" id="backToGameBtn">Back to Game</button>
+                        <button class="btn btn-secondary back-btn" id="backToGameBtn">
+                            <span class="back-icon">←</span>
+                            Back to Game
+                        </button>
                     </div>
                 </div>
 
@@ -265,6 +384,230 @@
                 </div>
 
                 <div class="trophy-pagination" id="trophyPagination"></div>
+            </div>
+        </div>
+
+        <!-- User Profile Screen -->
+        <div class="screen hidden" id="profileScreen">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <div class="profile-nav">
+                        <button class="profile-nav-btn active" data-tab="overview">👤 Overview</button>
+                        <button class="profile-nav-btn" data-tab="showcase">⭐ Showcase</button>
+                        <button class="profile-nav-btn" data-tab="settings">⚙️ Settings</button>
+                        <button class="btn btn-secondary back-btn" id="backToGameFromProfile">
+                            <span class="back-icon">←</span>
+                            Back to Game
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile Overview Tab -->
+                <div class="profile-tab active" id="overviewTab">
+                    <div class="profile-overview">
+                        <div class="profile-main">
+                            <div class="profile-avatar-section">
+                                <div class="profile-avatar">
+                                    <div class="avatar-placeholder">
+                                        <span class="avatar-initials" id="avatarInitials"></span>
+                                    </div>
+                                    <div class="profile-info">
+                                        <h2 class="profile-username" id="profileUsername"></h2>
+                                        <p class="profile-member-since">Member since <span id="profileMemberSince"></span></p>
+                                        <div class="profile-status">
+                                            <span class="status-indicator online"></span>
+                                            <span class="status-text">Online</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="profile-stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-icon">🏆</div>
+                                    <div class="stat-content">
+                                        <span class="stat-number" id="totalTrophiesCount">0</span>
+                                        <span class="stat-label">Total Trophies</span>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-icon">🎰</div>
+                                    <div class="stat-content">
+                                        <span class="stat-number" id="totalSpinsCount">0</span>
+                                        <span class="stat-label">Total Spins</span>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-icon">🌟</div>
+                                    <div class="stat-content">
+                                        <span class="stat-number" id="rareItemsCount">0</span>
+                                        <span class="stat-label">Rare+ Items</span>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-icon">📈</div>
+                                    <div class="stat-content">
+                                        <span class="stat-number" id="collectionRate">0%</span>
+                                        <span class="stat-label">Collection Rate</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-activity">
+                            <h3>Recent Activity</h3>
+                            <div class="activity-list" id="recentActivity">
+                                <!-- Activity items will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Showcase Tab -->
+                <div class="profile-tab" id="showcaseTab">
+                    <div class="showcase-container">
+                        <div class="showcase-header">
+                            <h3>Your Top 5 Showcase</h3>
+                            <p class="showcase-description">Select your 5 favorite trophies to display on your profile</p>
+                            <button class="btn btn-primary" id="editShowcaseBtn">Edit Showcase</button>
+                        </div>
+
+                        <div class="showcase-grid" id="showcaseGrid">
+                            <!-- Showcase cards will be populated here -->
+                        </div>
+
+                        <!-- Showcase Editor (hidden by default) -->
+                        <div class="showcase-editor hidden" id="showcaseEditor">
+                            <div class="editor-header">
+                                <h4>Choose Your Showcase Cards</h4>
+                                <div class="editor-controls">
+                                    <button class="btn btn-success" id="saveShowcaseBtn">Save Showcase</button>
+                                    <button class="btn btn-secondary" id="cancelShowcaseBtn">Cancel</button>
+                                </div>
+                            </div>
+
+                            <div class="editor-filters">
+                                <select id="showcaseTypeFilter" class="showcase-filter">
+                                    <option value="">All Types</option>
+                                    <option value="movie">🎬 Movies</option>
+                                    <option value="series">📺 TV Series</option>
+                                </select>
+
+                                <select id="showcaseRarityFilter" class="showcase-filter">
+                                    <option value="">All Rarities</option>
+                                    <option value="mythic">🌟 Mythic</option>
+                                    <option value="legendary">👑 Legendary</option>
+                                    <option value="epic">💎 Epic</option>
+                                    <option value="rare">⭐ Rare</option>
+                                    <option value="uncommon">🔹 Uncommon</option>
+                                    <option value="common">⚪ Common</option>
+                                </select>
+                            </div>
+
+                            <div class="showcase-selection" id="showcaseSelection">
+                                <!-- Available trophies for selection will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Settings Tab -->
+                <div class="profile-tab" id="settingsTab">
+                    <div class="settings-container">
+                        <div class="settings-section">
+                            <h3>Account Information</h3>
+                            <form id="accountSettingsForm" class="settings-form">
+                                <div class="form-group">
+                                    <label for="settingsUsername">Username</label>
+                                    <input type="text" id="settingsUsername" name="username" required>
+                                    <small class="form-help">Your display name visible to other users</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="settingsEmail">Email</label>
+                                    <input type="email" id="settingsEmail" name="email" required>
+                                    <small class="form-help">Used for login and notifications</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Update Account Info</button>
+                            </form>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Change Password</h3>
+                            <form id="passwordChangeForm" class="settings-form">
+                                <div class="form-group">
+                                    <label for="currentPassword">Current Password</label>
+                                    <input type="password" id="currentPassword" name="currentPassword" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="newPassword">New Password</label>
+                                    <input type="password" id="newPassword" name="newPassword" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="confirmPassword">Confirm New Password</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Change Password</button>
+                            </form>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>Privacy Settings</h3>
+                            <div class="privacy-controls">
+                                <div class="privacy-option">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="profilePublic" checked>
+                                        <span class="toggle-slider"></span>
+                                        <span class="toggle-label">
+                                            <span class="toggle-icon">🌍</span>
+                                            Make Profile Public
+                                        </span>
+                                    </label>
+                                    <small class="form-help">Allow other users to view your profile and showcase</small>
+                                </div>
+
+                                <div class="privacy-option">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="showStats" checked>
+                                        <span class="toggle-slider"></span>
+                                        <span class="toggle-label">
+                                            <span class="toggle-icon">📊</span>
+                                            Show Collection Stats
+                                        </span>
+                                    </label>
+                                    <small class="form-help">Display your collection statistics on your public profile</small>
+                                </div>
+
+                                <div class="privacy-option">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="showActivity" checked>
+                                        <span class="toggle-slider"></span>
+                                        <span class="toggle-label">
+                                            <span class="toggle-icon">📈</span>
+                                            Show Recent Activity
+                                        </span>
+                                    </label>
+                                    <small class="form-help">Display your recent trophy unlocks and activity</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section danger-zone">
+                            <h3>Danger Zone</h3>
+                            <div class="danger-controls">
+                                <button class="btn btn-danger" id="deleteAccountBtn">Delete Account</button>
+                                <small class="form-help">Permanently delete your account and all data. This cannot be undone.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -277,13 +620,98 @@
                 </div>
 
                 <div class="admin-tabs">
-                    <button class="admin-tab active" data-tab="content">Content Management</button>
-                    <button class="admin-tab" data-tab="users">User Management</button>
-                    <button class="admin-tab" data-tab="settings">Settings</button>
+                    <button class="admin-tab active" data-tab="dashboard">📊 Dashboard</button>
+                    <button class="admin-tab" data-tab="users">👥 Users</button>
+                    <button class="admin-tab" data-tab="content">🎬 Content</button>
+                    <button class="admin-tab" data-tab="spins">🎮 Spins</button>
+                    <button class="admin-tab" data-tab="analytics">📈 Analytics</button>
+                    <button class="admin-tab" data-tab="logs">📋 Logs</button>
+                    <button class="admin-tab" data-tab="settings">⚙️ Settings</button>
+                </div>
+
+                <!-- Dashboard Tab -->
+                <div class="admin-tab-content active" id="adminDashboardTab">
+                    <div class="dashboard-overview">
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-icon">👥</div>
+                                <div class="metric-content">
+                                    <div class="metric-value" id="dashTotalUsers">0</div>
+                                    <div class="metric-label">Total Users</div>
+                                    <div class="metric-change" id="dashUsersChange">+0 this week</div>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-icon">🎬</div>
+                                <div class="metric-content">
+                                    <div class="metric-value" id="dashTotalContent">0</div>
+                                    <div class="metric-label">Content Items</div>
+                                    <div class="metric-change" id="dashContentSplit">0 movies, 0 series</div>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-icon">🎰</div>
+                                <div class="metric-content">
+                                    <div class="metric-value" id="dashTotalSpins">0</div>
+                                    <div class="metric-label">Spins Today</div>
+                                    <div class="metric-change" id="dashSpinsChange">0 total unlocks</div>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-card">
+                                <div class="metric-icon">🏆</div>
+                                <div class="metric-content">
+                                    <div class="metric-value" id="dashActiveUsers">0</div>
+                                    <div class="metric-label">Active Users</div>
+                                    <div class="metric-change" id="dashActiveChange">Last 7 days</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-charts">
+                            <div class="chart-container">
+                                <h3>User Activity (Last 30 Days)</h3>
+                                <div class="chart-placeholder" id="userActivityChart">
+                                    <div class="chart-loading">📊 Chart data loading...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <h3>Content Performance</h3>
+                                <div class="chart-placeholder" id="contentPerformanceChart">
+                                    <div class="chart-loading">📈 Chart data loading...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-actions">
+                            <h3>Quick Actions</h3>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary" onclick="adminPanel.grantSpinsToAll()">
+                                    <span class="btn-icon">🎁</span>
+                                    Grant Bonus Spins
+                                </button>
+                                <button class="btn btn-secondary" onclick="adminPanel.exportUserData()">
+                                    <span class="btn-icon">📊</span>
+                                    Export Data
+                                </button>
+                                <button class="btn btn-warning" onclick="adminPanel.maintenanceMode()">
+                                    <span class="btn-icon">⚠️</span>
+                                    Maintenance Mode
+                                </button>
+                                <button class="btn btn-info" onclick="adminPanel.refreshAllData()">
+                                    <span class="btn-icon">🔄</span>
+                                    Refresh Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Content Management Tab -->
-                <div class="admin-tab-content active" id="contentTab">
+                <div class="admin-tab-content" id="adminContentTab">
                     <div class="admin-controls">
                         <div class="admin-filters">
                             <select id="adminTypeFilter">
@@ -326,13 +754,13 @@
                 </div>
 
                 <!-- Other tabs (placeholder) -->
-                <div class="admin-tab-content" id="usersTab">
+                <div class="admin-tab-content" id="adminUsersTab">
                     <h3>User Management</h3>
                     <p>User management features coming soon...</p>
                 </div>
 
-                <div class="admin-tab-content" id="settingsTab">
-                    <h3>Settings</h3>
+                <div class="admin-tab-content" id="adminSettingsTab">
+                    <h3>Admin Settings</h3>
                     <p>Admin settings coming soon...</p>
                 </div>
             </div>
@@ -341,6 +769,7 @@
     </div>
 
     <!-- Algorithm Info Modal -->
+    <!-- Info Modal -->
     <div class="modal-overlay hidden" id="modalOverlay">
         <div class="modal-content" id="modalContent">
             <button class="modal-close" id="closeModal">×</button>
@@ -374,6 +803,64 @@
         </div>
     </div>
 
+    <!-- Card Detail Modal -->
+    <div class="modal-overlay hidden" id="cardDetailModal">
+        <div class="card-modal-content">
+            <button class="modal-close" id="closeCardModal">×</button>
+            <div class="card-modal-body">
+                <!-- Full-size card will be populated here -->
+                <div class="collectible-card" id="modalCard">
+                    <div class="collectible-card-inner">
+                        <div class="collectible-card-header">
+                            <div class="collectible-card-title" id="modalCardTitle"></div>
+                            <div class="collectible-card-cost" id="modalCardCost"></div>
+                        </div>
+                        
+                        <div class="collectible-card-art">
+                            <div class="collectible-card-type" id="modalCardType"></div>
+                            <div class="collectible-rarity-gem" id="modalRarityGem"></div>
+                            <span id="modalCardIcon">🎬</span>
+                        </div>
+                        
+                        <div class="collectible-card-stats">
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label">Quality Score</span>
+                                <span class="collectible-stat-value collectible-quality-score" id="modalQualityScore"></span>
+                            </div>
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label">Critics</span>
+                                <span class="collectible-stat-value" id="modalCriticsScore"></span>
+                            </div>
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label">Audience</span>
+                                <span class="collectible-stat-value" id="modalAudienceScore"></span>
+                            </div>
+                            <div class="collectible-stats-row">
+                                <span class="collectible-stat-label" id="modalDurationLabel">Runtime</span>
+                                <span class="collectible-stat-value" id="modalDuration"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="collectible-card-description">
+                            <div class="collectible-description-text" id="modalDescription"></div>
+                        </div>
+                        
+                        <div class="collectible-card-footer">
+                            <div class="collectible-card-year" id="modalCardYear"></div>
+                            <div class="collectible-card-rarity" id="modalCardRarity"></div>
+                        </div>
+                        
+                        <!-- Trophy unlock timestamp (only shown for trophies) -->
+                        <div class="collectible-card-unlock-time hidden" id="modalUnlockTime">
+                            <span class="unlock-icon">🔓</span>
+                            <span class="unlock-text" id="modalUnlockText"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay hidden" id="loadingOverlay">
         <div class="loading-spinner"></div>
@@ -383,14 +870,114 @@
     <!-- Notification System -->
     <div class="notification-container" id="notificationContainer"></div>
 
+    <!-- Quality Score Education Modal -->
+    <div class="education-modal hidden" id="qualityEducationModal">
+        <div class="education-content">
+            <button class="education-close" id="educationCloseBtn">×</button>
+            
+            <div class="education-header">
+                <h2 class="education-title">How Our Quality Score Works</h2>
+                <p class="education-subtitle">We rate every movie and show from 1-10 so you never waste time on mediocre content</p>
+            </div>
+
+            <div class="education-body">
+                <div class="problem-solution">
+                    <div class="problem-card">
+                        <div class="card-icon">😵‍💫</div>
+                        <h3 class="card-title">The Problem</h3>
+                        <p>Endless scrolling through Netflix, Hulu, Prime Video... spending 30 minutes just to find something decent to watch.</p>
+                    </div>
+                    <div class="solution-card">
+                        <div class="card-icon">🎯</div>
+                        <h3 class="card-title">Our Solution</h3>
+                        <p>Only high-quality content makes it to your discovery feed. No 5.2/10 movies wasting your evening!</p>
+                    </div>
+                </div>
+
+                <div class="score-breakdown">
+                    <div class="score-tier mythic-tier">
+                        <div class="tier-badge">9.0 - 10.0</div>
+                        <div class="tier-info">
+                            <h4>Mythic Tier ✨</h4>
+                            <p>Absolute masterpieces. Think "The Godfather", "Breaking Bad", "Spirited Away" - content that defines genres.</p>
+                        </div>
+                    </div>
+
+                    <div class="score-tier legendary-tier">
+                        <div class="tier-badge">8.0 - 8.9</div>
+                        <div class="tier-info">
+                            <h4>Legendary Tier 🏆</h4>
+                            <p>Highly acclaimed films and shows. Excellent production, writing, and performances. "Inception", "Stranger Things".</p>
+                        </div>
+                    </div>
+
+                    <div class="score-tier epic-tier">
+                        <div class="tier-badge">7.0 - 7.9</div>
+                        <div class="tier-info">
+                            <h4>Epic Tier ⚡</h4>
+                            <p>Great entertainment value. Well-made content that's definitely worth your time. "The Martian", "Brooklyn 99".</p>
+                        </div>
+                    </div>
+
+                    <div class="score-tier rare-tier">
+                        <div class="tier-badge">6.0 - 6.9</div>
+                        <div class="tier-info">
+                            <h4>Rare Tier 🔹</h4>
+                            <p>Good quality content with solid storytelling. Some flaws but generally enjoyable.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="value-proposition">
+                    <h3>🕒 Save 2+ Hours Every Week</h3>
+                    <p>No more decision fatigue. No more "meh" movies. Just quality content that respects your time.</p>
+                </div>
+            </div>
+
+            <div class="education-actions">
+                <button class="btn btn-primary" id="educationGotItBtn">Got it! Let's discover more</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Achievement Notification -->
+    <div class="achievement-notification hidden" id="achievementNotification">
+        <div class="achievement-header">
+            <span class="achievement-icon" id="achievementIcon">🏆</span>
+            <span class="achievement-title" id="achievementTitle">Achievement Unlocked!</span>
+        </div>
+        <div class="achievement-description" id="achievementDescription">You've discovered your first movie!</div>
+    </div>
+
+    <!-- Guest Progress Banner -->
+    <div class="guest-progress-banner" id="guestProgressBanner">
+        <div class="progress-content">
+            <div class="progress-info">
+                <span class="progress-icon">💎</span>
+                <div class="progress-text">
+                    <div class="progress-title">Don't lose your collection!</div>
+                    <div class="progress-subtitle">You've discovered <span id="progressSpinCount">3</span> amazing movies</div>
+                </div>
+            </div>
+            <div class="progress-actions">
+                <button class="btn btn-primary" id="signUpFromProgress">Save Progress - Sign Up</button>
+                <button class="progress-dismiss" id="dismissProgress">Maybe later</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JavaScript -->
     <script src="js/utils.js?v=3"></script>
+    <script src="js/guest-session.js?v=1"></script>
     <script src="js/api.js?v=7"></script>
     <script src="js/auth.js?v=3"></script>
+    <script src="js/router.js?v=1"></script>
     <script src="js/discoverybox.js?v=3"></script>
     <script src="js/trophy.js?v=5"></script>
+    <script src="js/profile.js?v=5"></script>
     <script src="js/admin.js?v=1"></script>
     <script src="js/ui.js?v=4"></script>
+    <script src="js/onboarding.js?v=1"></script>
     <script src="js/app.js?v=3"></script>
 </body>
 </html>
