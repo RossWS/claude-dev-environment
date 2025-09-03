@@ -191,7 +191,8 @@ class AdminPanel {
     renderContent() {
         if (!this.adminContentGrid) return;
 
-        if (this.content.length === 0) {
+        // Ensure this.content is defined and is an array
+        if (!this.content || !Array.isArray(this.content) || this.content.length === 0) {
             this.adminContentGrid.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📋</div>

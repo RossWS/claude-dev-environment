@@ -109,8 +109,12 @@
                         <span class="spins-count" id="spinsCount">3</span>
                         <span class="spins-label">spins remaining</span>
                     </div>
+                    <div class="spin-refresh-timer" id="spinRefreshTimer">
+                        <div class="refresh-label">Next refresh in:</div>
+                        <div class="countdown-display" id="countdownDisplay">--:--:--</div>
+                    </div>
                 </div>
-                <button class="btn btn-secondary top-up-btn" id="topUpSpinsBtn">Top Up Spins (Test)</button>
+                <button class="btn btn-secondary top-up-btn" id="topUpSpinsBtn">+ Add Spins (Test)</button>
             </div>
 
             <!-- Selection Screen -->
@@ -530,6 +534,14 @@
                                     <label for="settingsEmail">Email</label>
                                     <input type="email" id="settingsEmail" name="email" required>
                                     <small class="form-help">Used for login and notifications</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="settingsTimezone">Timezone</label>
+                                    <select id="settingsTimezone" name="timezone" class="timezone-select">
+                                        <option value="">Auto-detect timezone</option>
+                                    </select>
+                                    <small class="form-help">Choose your timezone for accurate time displays</small>
                                 </div>
 
                                 <button type="submit" class="btn btn-primary">Update Account Info</button>
@@ -966,8 +978,36 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
+    <!-- JavaScript - Core Services -->
+    <script src="js/services/StateManager.js?v=1"></script>
+    <script src="js/services/EventBus.js?v=1"></script>
+    <script src="js/services/StorageManager.js?v=1"></script>
+    
+    <!-- Base Components -->
+    <script src="js/components/base/BaseComponent.js?v=1"></script>
+    <script src="js/components/base/BaseModal.js?v=1"></script>
+    <script src="js/components/base/BaseForm.js?v=1"></script>
+    
+    <!-- Admin Components -->
+    <script src="js/components/admin/AdminDashboard.js?v=1"></script>
+    <script src="js/components/admin/ContentManager.js?v=1"></script>
+    <script src="js/components/admin/UserManagement.js?v=1"></script>
+    <script src="js/components/admin/SystemSettings.js?v=1"></script>
+    
+    <!-- Profile Components -->
+    <script src="js/components/profile/ProfileEditor.js?v=1"></script>
+    <script src="js/components/profile/ShowcaseManager.js?v=1"></script>
+    <script src="js/components/profile/StatisticsDisplay.js?v=1"></script>
+    
+    <!-- Trophy Components -->
+    <script src="js/components/trophy/TrophyGrid.js?v=1"></script>
+    <script src="js/components/trophy/TrophyFilters.js?v=1"></script>
+    <script src="js/components/trophy/RarityManager.js?v=1"></script>
+    <script src="js/components/trophy/ExportManager.js?v=1"></script>
+    
+    <!-- Legacy Components (preserved for compatibility) -->
     <script src="js/utils.js?v=3"></script>
+    <script src="js/timezone-init.js?v=1"></script>
     <script src="js/guest-session.js?v=1"></script>
     <script src="js/api.js?v=7"></script>
     <script src="js/auth.js?v=3"></script>
@@ -978,6 +1018,11 @@
     <script src="js/admin.js?v=1"></script>
     <script src="js/onboarding.js?v=1"></script>
     <script src="js/router.js?v=1"></script>
+    
+    <!-- Component Registry and App -->
+    <script src="js/components/ComponentRegistry.js?v=1"></script>
+    <script src="js/migration-helper.js?v=1"></script>
     <script src="js/app.js?v=3"></script>
+    <script src="js/RefactoredApp.js?v=1"></script>
 </body>
 </html>

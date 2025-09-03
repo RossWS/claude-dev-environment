@@ -4,8 +4,10 @@ class DiscoveryBoxGame {
         this.currentType = null;
         this.selectedContent = null;
         this.isOpening = false;
+        this.countdownInterval = null;
         this.initializeElements();
         this.attachEventListeners();
+        this.initializeCountdownTimer();
     }
 
     initializeElements() {
@@ -38,6 +40,13 @@ class DiscoveryBoxGame {
 
     async openLootbox(type) {
         if (this.isOpening) return;
+        
+        // Check if guest has spins remaining
+        const isGuest = !Utils.storage.get('authToken');
+        if (isGuest && guestSession && !guestSession.hasSpinsRemaining()) {
+            this.showNoSpinsRemaining();
+            return;
+        }
         
         this.isOpening = true;
         this.currentType = type;
@@ -125,88 +134,132 @@ class DiscoveryBoxGame {
     }
 
     populateResultCard(content, unlock) {
-        const collectibleCard = document.getElementById('resultCollectibleCard');
-        const unlockBanner = document.getElementById('unlockStatusBanner');
-        
-        // Clear previous rarity classes and add new one
-        collectibleCard.className = 'collectible-card unlock-animation';
-        collectibleCard.classList.add(content.rarity.tier);
-        collectibleCard.setAttribute('data-type', this.currentType);
-
-        // Update unlock status banner
-        if (unlockBanner) {
-            if (unlock.wasNewUnlock) {
-                unlockBanner.textContent = '🎉 NEW UNLOCK!';
-                unlockBanner.className = 'unlock-status-banner new-unlock';
-            } else {
-                unlockBanner.textContent = '📚 Already Owned';
-                unlockBanner.className = 'unlock-status-banner duplicate';
+        try {
+            const collectibleCard = document.getElementById('resultCollectibleCard');
+            const unlockBanner = document.getElementById('unlockStatusBanner');
+            
+            // Clear previous rarity classes and add new one
+            collectibleCard.className = 'collectible-card unlock-animation';
+            if (content.rarity && content.rarity.tier) {
+                collectibleCard.classList.add(content.rarity.tier);
             }
-        }
+            collectibleCard.setAttribute('data-type', this.currentType);
 
-        // Update collectible card elements
-        document.getElementById('collectibleCardTitle').textContent = content.title;
-        document.getElementById('collectibleCardCost').textContent = content.qualityScore;
-        
-        // Set content type and icon
-        const cardType = document.getElementById('collectibleCardType');
-        const cardIcon = document.getElementById('collectibleCardIcon');
-        const contentEmoji = content.emoji || (this.currentType === 'series' ? '📺' : '🎬');
-        
-        if (this.currentType === 'series') {
-            cardType.textContent = '📺 Series';
-            cardIcon.textContent = contentEmoji;
-        } else {
-            cardType.textContent = '🎬 Movie';
-            cardIcon.textContent = contentEmoji;
-        }
-
-        // Set rarity gem
-        document.getElementById('collectibleRarityGem').textContent = content.rarity.icon;
-
-        // Update stats
-        document.getElementById('collectibleQualityScore').textContent = content.qualityScore;
-        document.getElementById('collectibleCriticsScore').textContent = content.critics_score + '%';
-        document.getElementById('collectibleAudienceScore').textContent = content.audience_score + '%';
-        
-        // Update duration label and value based on content type
-        const durationLabel = document.getElementById('collectibleDurationLabel');
-        const durationValue = document.getElementById('collectibleDuration');
-        if (this.currentType === 'series') {
-            durationLabel.textContent = 'Seasons';
-            durationValue.textContent = content.seasons || 'N/A';
-        } else {
-            durationLabel.textContent = 'Runtime';
-            durationValue.textContent = content.duration;
-        }
-
-        // Update description and footer
-        document.getElementById('collectibleDescription').textContent = content.description;
-        const cardYear = document.getElementById('collectibleCardYear');
-        if (this.currentType === 'series' && content.end_year && content.end_year !== content.year) {
-            cardYear.textContent = `${content.year}-${content.end_year}`;
-        } else {
-            cardYear.textContent = content.year;
-        }
-        document.getElementById('collectibleCardRarity').textContent = content.rarity.label;
-
-        // Trigger unlock animation
-        setTimeout(() => {
-            collectibleCard.classList.add('unlock-animation');
-        }, 100);
-
-        // Add tutorial prompt for first-time users
-        this.addCardTutorialPrompt();
-
-        // Dispatch content unlock event for onboarding
-        const unlockEvent = new CustomEvent('contentUnlocked', {
-            detail: {
-                content: content,
-                unlock: unlock,
-                isFirstTime: unlock.is_new
+            // Update unlock status banner
+            if (unlockBanner) {
+                // Handle both authenticated (wasNewUnlock) and guest (is_new) formats
+                const isNewUnlock = unlock.wasNewUnlock || unlock.is_new;
+                if (isNewUnlock) {
+                    unlockBanner.textContent = '🎉 NEW UNLOCK!';
+                    unlockBanner.className = 'unlock-status-banner new-unlock';
+                } else {
+                    unlockBanner.textContent = '📚 Already Owned';
+                    unlockBanner.className = 'unlock-status-banner duplicate';
+                }
             }
-        });
-        document.dispatchEvent(unlockEvent);
+
+            // Update collectible card elements with fallbacks
+            const cardTitle = document.getElementById('collectibleCardTitle');
+            const cardCost = document.getElementById('collectibleCardCost');
+            
+            if (cardTitle) cardTitle.textContent = content.title || 'Unknown Title';
+            if (cardCost) cardCost.textContent = content.qualityScore || content.quality_score || '0';
+        
+            // Set content type and icon
+            const cardType = document.getElementById('collectibleCardType');
+            const cardIcon = document.getElementById('collectibleCardIcon');
+            const contentEmoji = content.emoji || (this.currentType === 'series' ? '📺' : '🎬');
+            
+            if (cardType) {
+                if (this.currentType === 'series') {
+                    cardType.textContent = '📺 Series';
+                } else {
+                    cardType.textContent = '🎬 Movie';
+                }
+            }
+            if (cardIcon) {
+                cardIcon.textContent = contentEmoji;
+            }
+
+            // Set rarity gem with error handling
+            const rarityGem = document.getElementById('collectibleRarityGem');
+            if (rarityGem && content.rarity && content.rarity.icon) {
+                rarityGem.textContent = content.rarity.icon;
+            }
+
+            // Update stats with error handling
+            const qualityScoreEl = document.getElementById('collectibleQualityScore');
+            const criticsScoreEl = document.getElementById('collectibleCriticsScore');
+            const audienceScoreEl = document.getElementById('collectibleAudienceScore');
+            
+            if (qualityScoreEl) {
+                qualityScoreEl.textContent = content.qualityScore || content.quality_score || '0';
+            }
+            if (criticsScoreEl) {
+                const criticsScore = content.critics_score || 0;
+                criticsScoreEl.textContent = criticsScore + '%';
+            }
+            if (audienceScoreEl) {
+                const audienceScore = content.audience_score || 0;
+                audienceScoreEl.textContent = audienceScore + '%';
+            }
+        
+            // Update duration label and value based on content type
+            const durationLabel = document.getElementById('collectibleDurationLabel');
+            const durationValue = document.getElementById('collectibleDuration');
+            if (durationLabel && durationValue) {
+                if (this.currentType === 'series') {
+                    durationLabel.textContent = 'Seasons';
+                    durationValue.textContent = content.seasons || 'N/A';
+                } else {
+                    durationLabel.textContent = 'Runtime';
+                    durationValue.textContent = content.duration || 'N/A';
+                }
+            }
+
+            // Update description and footer with error handling
+            const descriptionEl = document.getElementById('collectibleDescription');
+            const cardYearEl = document.getElementById('collectibleCardYear');
+            const rarityLabelEl = document.getElementById('collectibleCardRarity');
+            
+            if (descriptionEl) {
+                descriptionEl.textContent = content.description || 'No description available';
+            }
+            
+            if (cardYearEl) {
+                if (this.currentType === 'series' && content.end_year && content.end_year !== content.year) {
+                    cardYearEl.textContent = `${content.year}-${content.end_year}`;
+                } else {
+                    cardYearEl.textContent = content.year || 'Unknown';
+                }
+            }
+            
+            if (rarityLabelEl && content.rarity && content.rarity.label) {
+                rarityLabelEl.textContent = content.rarity.label;
+            }
+
+            // Trigger unlock animation
+            setTimeout(() => {
+                collectibleCard.classList.add('unlock-animation');
+            }, 100);
+
+            // Add tutorial prompt for first-time users
+            this.addCardTutorialPrompt();
+
+            // Dispatch content unlock event for onboarding
+            const unlockEvent = new CustomEvent('contentUnlocked', {
+                detail: {
+                    content: content,
+                    unlock: unlock,
+                    isFirstTime: unlock.is_new || unlock.wasNewUnlock
+                }
+            });
+            document.dispatchEvent(unlockEvent);
+            
+        } catch (error) {
+            console.error('Error populating result card:', error);
+            // Don't throw the error to prevent global error handlers
+        }
     }
 
     createBurstEffect(tier) {
@@ -366,14 +419,56 @@ class DiscoveryBoxGame {
     updateSpinStatus(spins) {
         const spinsCount = document.getElementById('spinsCount');
         const spinStatus = document.getElementById('spinStatus');
+        const refreshTimer = document.getElementById('spinRefreshTimer');
         
         if (spinsCount) {
             spinsCount.textContent = spins.remaining;
         }
 
+        // Show/hide refresh timer based on spins remaining
+        if (refreshTimer) {
+            if (spins.remaining <= 0) {
+                refreshTimer.style.display = 'block';
+            } else {
+                refreshTimer.style.display = 'none';
+            }
+        }
+
         // Hide spin status if no spins remaining
         if (spinStatus && spins.remaining <= 0) {
             spinStatus.style.opacity = '0.5';
+        } else if (spinStatus) {
+            spinStatus.style.opacity = '1';
+        }
+    }
+
+    initializeCountdownTimer() {
+        // Start the countdown timer immediately
+        this.countdownInterval = Utils.countdown.start('countdownDisplay', (secondsLeft, formattedTime) => {
+            // Optional callback for when countdown reaches zero or specific milestones
+            if (secondsLeft === 0) {
+                // Spins should refresh at midnight, we could trigger a check here
+                this.checkForSpinRefresh();
+            }
+        });
+    }
+
+    async checkForSpinRefresh() {
+        try {
+            // Check if spins have been refreshed
+            const isGuest = !Utils.storage.get('authToken');
+            
+            if (isGuest && guestSession) {
+                const guestSpinStatus = guestSession.getSpinStatus();
+                this.updateSpinStatus({ remaining: guestSpinStatus.remaining });
+            } else if (!isGuest) {
+                const response = await api.lootbox.getStatus();
+                if (response.success) {
+                    this.updateSpinStatus(response.spins);
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to check for spin refresh:', error);
         }
     }
 
@@ -415,12 +510,41 @@ class DiscoveryBoxGame {
 
     async loadSpinStatus() {
         try {
+            // For guests, get spin status from guest session
+            const isGuest = !Utils.storage.get('authToken');
+            if (isGuest && guestSession) {
+                const guestSpinStatus = guestSession.getGuestSpinStatus();
+                this.updateSpinStatus({ remaining: guestSpinStatus.remaining });
+                return;
+            }
+            
             const response = await api.lootbox.getStatus();
             if (response.success) {
                 this.updateSpinStatus(response.spins);
+                
+                // For authenticated users, skip the hero section and go straight to content selection
+                this.initializeAuthenticatedUserView();
             }
         } catch (error) {
             console.warn('Failed to load spin status:', error);
+        }
+    }
+
+    // Initialize view for authenticated users (skip onboarding)
+    initializeAuthenticatedUserView() {
+        const heroSection = document.querySelector('.hero-section');
+        const contentSelection = document.getElementById('contentTypeSelection');
+        
+        if (heroSection && contentSelection) {
+            // Hide hero section for authenticated users
+            heroSection.style.display = 'none';
+            
+            // Show content selection directly
+            contentSelection.classList.remove('hidden');
+            contentSelection.style.opacity = '1';
+            contentSelection.style.transform = 'translateY(0)';
+            
+            console.log('🎮 Game: Initialized for authenticated user - skipping onboarding');
         }
     }
 
@@ -439,9 +563,34 @@ class DiscoveryBoxGame {
         }
     }
 
+    showNoSpinsRemaining() {
+        // Show sign-up prompt for guests who are out of spins
+        UI.showNotification('You\'ve used all your guest spins! Sign up to get 1 bonus spin and save your progress 🎯', 'warning', 8000);
+        
+        // Trigger the registration prompt
+        if (window.onboardingManager) {
+            setTimeout(() => {
+                onboardingManager.triggerRegistrationPrompt();
+            }, 1000);
+        }
+    }
+
     // Top up spins (testing only)
     async topUpSpins() {
         try {
+            // Check if user is a guest
+            const isGuest = !Utils.storage.get('authToken');
+            
+            if (isGuest && guestSession) {
+                // Add bonus spins for guests (testing purposes)
+                guestSession.addBonusSpins(5);
+                UI.showNotification('🎁 Added 5 bonus spins for testing!', 'success');
+                // Refresh spin status
+                await this.loadSpinStatus();
+                return;
+            }
+            
+            // Regular authenticated user flow
             const response = await api.user.topUpSpins();
             if (response.success) {
                 UI.showNotification(response.message, 'success');
@@ -453,6 +602,14 @@ class DiscoveryBoxGame {
         } catch (error) {
             console.error('Top up spins error:', error);
             UI.showNotification(error.message || 'Failed to top up spins', 'error');
+        }
+    }
+
+    // Cleanup method to stop countdown timer
+    cleanup() {
+        if (this.countdownInterval) {
+            Utils.countdown.stop(this.countdownInterval);
+            this.countdownInterval = null;
         }
     }
 }

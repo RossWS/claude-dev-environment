@@ -74,14 +74,50 @@ class Router {
         console.log('🔗 Router: Initial route:', path);
         
         if (path === '/' || path === '') {
-            // Determine default route based on auth state
-            if (window.authManager?.isAuthenticated) {
-                this.navigate('/game', true);
-            } else {
-                this.navigate('/welcome', true);
-            }
+            // Wait for auth initialization before determining default route
+            this.waitForAuthAndRoute();
         } else {
             this.handleRoute();
+        }
+    }
+
+    // Wait for auth initialization and then route
+    async waitForAuthAndRoute() {
+        console.log('🔗 Router: Waiting for auth initialization...');
+        
+        // If authManager exists and has initialized, route immediately
+        if (window.authManager && window.authManager.isAuthenticated !== undefined) {
+            this.routeBasedOnAuth();
+            return;
+        }
+        
+        // Otherwise, listen for auth state change event
+        const handleAuthStateChange = () => {
+            console.log('🔗 Router: Auth state changed, routing...');
+            document.removeEventListener('authStateChanged', handleAuthStateChange);
+            this.routeBasedOnAuth();
+        };
+        
+        document.addEventListener('authStateChanged', handleAuthStateChange);
+        
+        // Fallback: If no auth event comes within 2 seconds, route as guest
+        setTimeout(() => {
+            if (!this.currentRoute) {
+                console.log('🔗 Router: Auth timeout, routing as guest');
+                document.removeEventListener('authStateChanged', handleAuthStateChange);
+                this.navigate('/welcome', true);
+            }
+        }, 2000);
+    }
+
+    // Route based on current auth state
+    routeBasedOnAuth() {
+        if (window.authManager?.isAuthenticated) {
+            console.log('🔗 Router: User authenticated, going to game');
+            this.navigate('/game', true);
+        } else {
+            console.log('🔗 Router: User not authenticated, going to welcome');
+            this.navigate('/welcome', true);
         }
     }
 
@@ -231,14 +267,13 @@ const RouteHandlers = {
         // Initialize game if needed
         if (!window.discoveryboxGame) {
             if (typeof DiscoveryBoxGame === 'undefined') {
-                console.error('DiscoveryBoxGame class not found');
-                return;
+                throw new Error('DiscoveryBoxGame class not found');
             }
             window.discoveryboxGame = new DiscoveryBoxGame();
         }
         if (window.discoveryboxGame) {
             window.discoveryboxGame.createBackgroundParticles();
-            window.discoveryboxGame.loadSpinStatus();
+            await window.discoveryboxGame.loadSpinStatus();
         }
     },
 

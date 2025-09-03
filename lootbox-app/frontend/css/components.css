@@ -307,6 +307,29 @@
     text-transform: uppercase;
 }
 
+/* Spin Refresh Timer */
+.spin-refresh-timer {
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--card-border);
+    text-align: center;
+}
+
+.refresh-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: var(--space-1);
+}
+
+.countdown-display {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--accent-secondary);
+    font-family: monospace;
+    letter-spacing: 0.5px;
+}
+
 /* Top Up Button */
 .top-up-btn {
     padding: var(--space-2) var(--space-4);

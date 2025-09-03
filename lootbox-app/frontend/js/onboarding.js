@@ -297,7 +297,7 @@ class OnboardingManager {
         }
 
         // Show bonus notification
-        UI.showNotification('🎁 Sign up now and get 5 bonus spins to keep exploring!', 'success', 6000);
+        UI.showNotification('🎁 Sign up now and get 1 bonus spin to keep exploring!', 'success', 6000);
 
         // Add special styling to registration form
         setTimeout(() => {
@@ -314,7 +314,7 @@ class OnboardingManager {
                         <div class="bonus-icon">🎁</div>
                         <div class="bonus-text">
                             <strong>Limited Time Offer!</strong>
-                            <span>Save your progress + get 5 bonus spins</span>
+                            <span>Save your progress + get 1 bonus spin</span>
                         </div>
                     `;
                     authCard.insertBefore(bonusMessage, authCard.firstChild);
@@ -324,10 +324,22 @@ class OnboardingManager {
     }
 
     handleUserRegistration() {
-        // User has successfully registered
+        // User has successfully registered/logged in
         this.migrateGuestData();
         this.hideOnboardingElements();
         this.showWelcomeMessage();
+        
+        // Navigate to fresh game state (selection screen)
+        setTimeout(() => {
+            if (window.router) {
+                // Reset any existing game state
+                if (window.discoveryboxGame) {
+                    window.discoveryboxGame.resetGame();
+                }
+                // Navigate to game route
+                window.router.navigate('/game');
+            }
+        }, 1500); // Allow time for welcome message
     }
 
     migrateGuestData() {
@@ -366,12 +378,22 @@ class OnboardingManager {
     }
 
     showWelcomeMessage() {
+        // Check if user was a guest who had spins to get bonus
+        const wasGuest = guestSession && guestSession.isGuestSession();
+        
         UI.showNotification('🎉 Welcome to DiscoveryBox! Your progress has been saved.', 'success', 5000);
+        
+        // Show bonus spin message if they were a guest
+        if (wasGuest) {
+            setTimeout(() => {
+                UI.showNotification('🎁 Bonus! You received 1 extra spin for signing up!', 'success', 4000);
+            }, 1500);
+        }
         
         // Show trophy cabinet if they have unlocks
         setTimeout(() => {
             UI.showNotification('Check out your Trophy Cabinet to see your discoveries! 🏆', 'info', 4000);
-        }, 2000);
+        }, wasGuest ? 3000 : 2000);
     }
 
     updateUIForGuestProgress(stats) {

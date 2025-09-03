@@ -66,6 +66,7 @@ router.post('/guest-open', async (req, res) => {
         // Prepare content object
         const contentWithMetrics = {
             ...content,
+            qualityScore: qualityScore, // Make sure this is consistent with frontend expectation
             quality_score: qualityScore,
             rarity: rarity,
             rarity_tier: rarity.tier

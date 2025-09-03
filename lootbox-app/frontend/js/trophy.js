@@ -18,11 +18,8 @@ class TrophyCabinet {
         // Listen for guest unlocks to refresh trophy cabinet
         document.addEventListener('guestUnlockAdded', () => {
             if (!Utils.storage.get('authToken')) {
-                // Only refresh if we're currently viewing the trophy screen
-                const trophyScreen = document.getElementById('trophyScreen');
-                if (trophyScreen && !trophyScreen.classList.contains('hidden')) {
-                    this.loadGuestTrophies();
-                }
+                // Mark that guest data has been updated so we refresh on next view
+                sessionStorage.setItem('guestTrophiesNeedRefresh', 'true');
             }
         });
     }
@@ -182,20 +179,50 @@ class TrophyCabinet {
 
     loadGuestTrophies() {
         try {
-            const session = guestSession.getSession();
-            if (!session || !session.unlockedContent || session.unlockedContent.length === 0) {
+            // Always get fresh session data
+            const session = guestSession ? guestSession.getSession() : null;
+            
+            if (!session) {
                 this.displayEmptyGuestState();
                 return;
             }
 
-            // Convert guest unlocks to trophy format
-            const guestTrophies = session.unlockedContent.map(content => ({
-                ...content,
-                unlock_time: content.unlockedAt,
-                spin_type: content.type,
-                is_new: false, // Already unlocked
-                rarity_tier: Utils.getRarityTier(content.quality_score).tier
-            }));
+            if (!session.unlockedContent || session.unlockedContent.length === 0) {
+                this.displayEmptyGuestState();
+                return;
+            }
+
+            // Convert guest unlocks to trophy format with error handling
+            const guestTrophies = session.unlockedContent.map(content => {
+                try {
+                    // Ensure required fields exist with fallbacks
+                    const trophy = {
+                        ...content,
+                        unlock_time: content.unlockedAt || Date.now(),
+                        spin_type: content.type || 'movie',
+                        is_new: false, // Already unlocked
+                        title: content.title || 'Unknown Title',
+                        quality_score: content.quality_score || 0
+                    };
+
+                    // Add rarity tier with error handling
+                    try {
+                        if (window.Utils && typeof window.Utils.getRarityTier === 'function') {
+                            trophy.rarity_tier = Utils.getRarityTier(content.quality_score).tier;
+                        } else {
+                            trophy.rarity_tier = 'common'; // fallback
+                        }
+                    } catch (error) {
+                        console.warn('Error getting rarity tier for content:', content, error);
+                        trophy.rarity_tier = 'common'; // fallback
+                    }
+
+                    return trophy;
+                } catch (error) {
+                    console.warn('Error processing guest trophy:', content, error);
+                    return null; // Will be filtered out
+                }
+            }).filter(trophy => trophy !== null); // Remove failed conversions
 
             // Apply filters to guest trophies
             let filteredTrophies = this.filterGuestTrophies(guestTrophies);
@@ -205,6 +232,9 @@ class TrophyCabinet {
             this.displayGuestTrophies(filteredTrophies);
             this.updateGuestStats(session);
             this.hasMore = false; // No pagination for guest
+
+            // Clear the refresh flag
+            sessionStorage.removeItem('guestTrophiesNeedRefresh');
 
         } catch (error) {
             console.error('Error loading guest trophies:', error);
@@ -536,7 +566,7 @@ class TrophyCabinet {
     }
 
     createTrophyCard(trophy) {
-        const unlockedDate = Utils.formatRelativeTime(trophy.unlocked_at);
+        const unlockedDate = Utils.formatTimeAgo(trophy.unlocked_at);
         const rarity = Utils.getRarityTier(trophy.quality_score);
         const contentEmoji = trophy.emoji || (trophy.type === 'series' ? '📺' : '🎬');
         const contentType = trophy.type === 'series' ? '📺 Series' : '🎬 Movie';

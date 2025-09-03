@@ -18,11 +18,22 @@ class AuthManager {
                 const response = await api.auth.verify();
                 if (response.success) {
                     this.setUser(response.user);
+                } else {
+                    // Token invalid, clear auth state and dispatch event
+                    this.clearUser();
                 }
             } catch (error) {
                 console.warn('Token verification failed:', error);
                 this.logout();
             }
+        } else {
+            // No token, dispatch event to notify router
+            document.dispatchEvent(new CustomEvent('authStateChanged', {
+                detail: {
+                    isAuthenticated: false,
+                    user: null
+                }
+            }));
         }
     }
 
@@ -31,6 +42,14 @@ class AuthManager {
         this.currentUser = user;
         this.isAuthenticated = true;
         Utils.storage.set('currentUser', user);
+        
+        // Dispatch auth state change event
+        document.dispatchEvent(new CustomEvent('authStateChanged', {
+            detail: {
+                isAuthenticated: true,
+                user: user
+            }
+        }));
         
         // Trigger login callbacks
         this.loginCallbacks.forEach(callback => {
@@ -48,6 +67,14 @@ class AuthManager {
         this.isAuthenticated = false;
         Utils.storage.remove('currentUser');
         Utils.storage.remove('authToken');
+        
+        // Dispatch auth state change event
+        document.dispatchEvent(new CustomEvent('authStateChanged', {
+            detail: {
+                isAuthenticated: false,
+                user: null
+            }
+        }));
         
         // Trigger logout callbacks
         this.logoutCallbacks.forEach(callback => {

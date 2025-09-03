@@ -175,6 +175,14 @@ class UIManager {
         console.log('🔧 UI: Navigating to trophies via router');
         if (window.router) {
             window.router.navigate('/trophies');
+            
+            // Ensure guest trophies are loaded after navigation
+            setTimeout(() => {
+                const isGuest = !Utils.storage.get('authToken');
+                if (isGuest && window.trophyCabinet) {
+                    window.trophyCabinet.loadGuestTrophies();
+                }
+            }, 100);
         }
     }
 

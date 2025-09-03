@@ -60,6 +60,124 @@ class Utils {
         return this.formatDate(dateString);
     }
 
+    // Alias for backwards compatibility
+    static formatTimeAgo(dateString) {
+        return this.formatRelativeTime(dateString);
+    }
+
+    // Timezone utilities
+    static getTimezone() {
+        try {
+            return Intl.DateTimeFormat().resolvedOptions().timeZone;
+        } catch (error) {
+            console.warn('Failed to detect timezone:', error);
+            return 'UTC';
+        }
+    }
+
+    static getUserTimezone() {
+        // First check if user has a saved timezone preference
+        const savedTimezone = this.storage.get('userTimezone');
+        if (savedTimezone) {
+            return savedTimezone;
+        }
+        
+        // Fall back to browser detected timezone
+        return this.getTimezone();
+    }
+
+    static setUserTimezone(timezone) {
+        try {
+            // Validate timezone
+            Intl.DateTimeFormat('en', { timeZone: timezone });
+            this.storage.set('userTimezone', timezone);
+            return true;
+        } catch (error) {
+            console.warn('Invalid timezone:', timezone, error);
+            return false;
+        }
+    }
+
+    static formatDateInTimezone(dateString, timezone = null, options = {}) {
+        if (!timezone) {
+            timezone = this.getUserTimezone();
+        }
+        
+        const defaultOptions = {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: timezone
+        };
+        const formatOptions = { ...defaultOptions, ...options };
+        
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', formatOptions);
+        } catch (error) {
+            console.warn('Date formatting error:', error);
+            return dateString;
+        }
+    }
+
+    static formatRelativeTimeInTimezone(dateString, timezone = null) {
+        if (!timezone) {
+            timezone = this.getUserTimezone();
+        }
+        
+        try {
+            // Convert the date to the user's timezone for comparison
+            const now = new Date();
+            const date = new Date(dateString);
+            
+            // Get timezone offset difference
+            const nowInUserTz = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+            const dateInUserTz = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+            
+            const diffInSeconds = Math.floor((nowInUserTz - dateInUserTz) / 1000);
+
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+            if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+            if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
+            
+            return this.formatDateInTimezone(dateString, timezone);
+        } catch (error) {
+            console.warn('Timezone relative time formatting error:', error);
+            return this.formatRelativeTime(dateString);
+        }
+    }
+
+    // Enhanced formatTimeAgo with timezone support
+    static formatTimeAgo(dateString, timezone = null) {
+        return this.formatRelativeTimeInTimezone(dateString, timezone);
+    }
+
+    // Get list of common timezones for UI
+    static getCommonTimezones() {
+        return [
+            { value: 'America/New_York', label: 'Eastern Time (ET)' },
+            { value: 'America/Chicago', label: 'Central Time (CT)' },
+            { value: 'America/Denver', label: 'Mountain Time (MT)' },
+            { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+            { value: 'America/Anchorage', label: 'Alaska Time (AKT)' },
+            { value: 'Pacific/Honolulu', label: 'Hawaii Time (HST)' },
+            { value: 'UTC', label: 'UTC (Coordinated Universal Time)' },
+            { value: 'Europe/London', label: 'Greenwich Mean Time (GMT)' },
+            { value: 'Europe/Paris', label: 'Central European Time (CET)' },
+            { value: 'Europe/Berlin', label: 'Central European Time (CET)' },
+            { value: 'Asia/Tokyo', label: 'Japan Standard Time (JST)' },
+            { value: 'Asia/Shanghai', label: 'China Standard Time (CST)' },
+            { value: 'Asia/Kolkata', label: 'India Standard Time (IST)' },
+            { value: 'Australia/Sydney', label: 'Australian Eastern Time (AET)' },
+            { value: 'America/Toronto', label: 'Eastern Time Canada' },
+            { value: 'America/Vancouver', label: 'Pacific Time Canada' }
+        ];
+    }
+
     // Capitalize first letter of each word
     static titleCase(str) {
         return str.replace(/\w\S*/g, (txt) => 
@@ -477,6 +595,89 @@ class Utils {
             }
             
             return errorInfo;
+        }
+    };
+
+    // Countdown timer helpers
+    static countdown = {
+        // Format countdown time in HH:MM:SS format
+        formatTime(totalSeconds) {
+            if (totalSeconds <= 0) return '00:00:00';
+            
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            
+            return [hours, minutes, seconds]
+                .map(val => String(val).padStart(2, '0'))
+                .join(':');
+        },
+
+        // Calculate time until next midnight (when spins refresh)
+        getTimeUntilMidnight(timezone = null) {
+            try {
+                const now = new Date();
+                const userTimezone = timezone || Utils.getUserTimezone();
+                
+                // Get current time in user's timezone
+                const nowInTz = new Date(now.toLocaleString('en-US', { timeZone: userTimezone }));
+                
+                // Get next midnight in user's timezone
+                const nextMidnight = new Date(nowInTz);
+                nextMidnight.setHours(24, 0, 0, 0);
+                
+                // Convert back to local time for calculation
+                const nextMidnightLocal = new Date(nextMidnight.toLocaleString('en-US', { timeZone: 'UTC' }));
+                const nowLocal = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+                
+                const timeDiff = Math.max(0, Math.floor((nextMidnightLocal - nowLocal) / 1000));
+                return timeDiff;
+            } catch (error) {
+                console.warn('Error calculating time until midnight:', error);
+                // Fallback: calculate using local time
+                const now = new Date();
+                const nextMidnight = new Date(now);
+                nextMidnight.setDate(nextMidnight.getDate() + 1);
+                nextMidnight.setHours(0, 0, 0, 0);
+                return Math.max(0, Math.floor((nextMidnight - now) / 1000));
+            }
+        },
+
+        // Start a countdown timer that updates an element
+        start(elementId, updateCallback = null) {
+            const element = document.getElementById(elementId);
+            if (!element) return null;
+
+            const updateTimer = () => {
+                const secondsLeft = this.getTimeUntilMidnight();
+                const formattedTime = this.formatTime(secondsLeft);
+                element.textContent = formattedTime;
+                
+                if (updateCallback && typeof updateCallback === 'function') {
+                    updateCallback(secondsLeft, formattedTime);
+                }
+                
+                // If countdown reached zero, we might want to refresh spins
+                if (secondsLeft <= 0) {
+                    element.textContent = '00:00:00';
+                    // Don't clear the timer yet, let it continue for the next day
+                }
+            };
+
+            // Update immediately
+            updateTimer();
+            
+            // Update every second
+            const intervalId = setInterval(updateTimer, 1000);
+            
+            return intervalId;
+        },
+
+        // Stop a countdown timer
+        stop(intervalId) {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
         }
     };
 }

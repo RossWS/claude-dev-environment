@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Test - DiscoveryBox</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #b6d4db; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Error Test Page</h1>
+    <p>This page loads the same scripts as the main app to test for JavaScript errors.</p>
+    
+    <div id="test-results"></div>
+    <div id="error-log"></div>
+
+    <!-- Load all scripts in the same order as main page -->
+    <!-- JavaScript - Core Services -->
+    <script src="js/services/StateManager.js?v=1"></script>
+    <script src="js/services/EventBus.js?v=1"></script>
+    <script src="js/services/StorageManager.js?v=1"></script>
+    
+    <!-- Base Components -->
+    <script src="js/components/base/BaseComponent.js?v=1"></script>
+    <script src="js/components/base/BaseModal.js?v=1"></script>
+    <script src="js/components/base/BaseForm.js?v=1"></script>
+    
+    <!-- Admin Components -->
+    <script src="js/components/admin/AdminDashboard.js?v=1"></script>
+    <script src="js/components/admin/ContentManager.js?v=1"></script>
+    <script src="js/components/admin/UserManagement.js?v=1"></script>
+    <script src="js/components/admin/SystemSettings.js?v=1"></script>
+    
+    <!-- Profile Components -->
+    <script src="js/components/profile/ProfileEditor.js?v=1"></script>
+    <script src="js/components/profile/ShowcaseManager.js?v=1"></script>
+    <script src="js/components/profile/StatisticsDisplay.js?v=1"></script>
+    
+    <!-- Trophy Components -->
+    <script src="js/components/trophy/TrophyGrid.js?v=1"></script>
+    <script src="js/components/trophy/TrophyFilters.js?v=1"></script>
+    <script src="js/components/trophy/RarityManager.js?v=1"></script>
+    <script src="js/components/trophy/ExportManager.js?v=1"></script>
+    
+    <!-- Legacy Components (preserved for compatibility) -->
+    <script src="js/utils.js?v=3"></script>
+    <script src="js/guest-session.js?v=1"></script>
+    <script src="js/api.js?v=7"></script>
+    <script src="js/auth.js?v=3"></script>
+    <script src="js/ui.js?v=4"></script>
+    <script src="js/discoverybox.js?v=3"></script>
+    <script src="js/trophy.js?v=5"></script>
+    <script src="js/profile.js?v=5"></script>
+    <script src="js/admin.js?v=1"></script>
+    <script src="js/onboarding.js?v=1"></script>
+    <script src="js/router.js?v=1"></script>
+    
+    <!-- Component Registry and App -->
+    <script src="js/components/ComponentRegistry.js?v=1"></script>
+    <script src="js/migration-helper.js?v=1"></script>
+    <script src="js/app.js?v=3"></script>
+    <script src="js/RefactoredApp.js?v=1"></script>
+
+    <script>
+        const results = document.getElementById('test-results');
+        const errorLog = document.getElementById('error-log');
+        const errors = [];
+
+        // Capture JavaScript errors
+        window.addEventListener('error', (e) => {
+            errors.push({
+                type: 'error',
+                message: e.message,
+                filename: e.filename,
+                lineno: e.lineno,
+                colno: e.colno,
+                error: e.error
+            });
+            logError('JavaScript Error', e.message, e.filename, e.lineno);
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            errors.push({
+                type: 'unhandledrejection',
+                reason: e.reason,
+                promise: e.promise
+            });
+            logError('Unhandled Promise Rejection', e.reason);
+        });
+
+        function logError(type, message, filename = '', lineno = '') {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'test-result error';
+            errorDiv.innerHTML = `
+                <strong>[${new Date().toLocaleTimeString()}] ${type}:</strong><br>
+                ${message}<br>
+                ${filename ? `File: ${filename}:${lineno}` : ''}
+            `;
+            errorLog.appendChild(errorDiv);
+        }
+
+        function logSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'test-result success';
+            successDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            results.appendChild(successDiv);
+        }
+
+        function logInfo(message) {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'test-result info';
+            infoDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            results.appendChild(infoDiv);
+        }
+
+        // Run tests after scripts load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                runTests();
+            }, 2000); // Give time for all scripts to load and initialize
+        });
+
+        function runTests() {
+            logInfo('🧪 Starting error detection tests...');
+
+            // Test 1: Check for script loading errors
+            if (errors.length === 0) {
+                logSuccess('✅ No JavaScript errors detected during script loading');
+            } else {
+                logError('Script Loading', `${errors.length} errors detected during script loading`);
+            }
+
+            // Test 2: Check if core services are available
+            const coreServices = ['stateManager', 'eventBus', 'storageManager'];
+            coreServices.forEach(service => {
+                if (window[service]) {
+                    logSuccess(`✅ ${service} loaded successfully`);
+                } else {
+                    logError('Missing Service', `${service} is not available`);
+                }
+            });
+
+            // Test 3: Check if base components are available
+            const baseComponents = ['BaseComponent', 'BaseModal', 'BaseForm'];
+            baseComponents.forEach(component => {
+                if (window[component]) {
+                    logSuccess(`✅ ${component} loaded successfully`);
+                } else {
+                    logError('Missing Component', `${component} is not available`);
+                }
+            });
+
+            // Test 4: Check if component registry works
+            if (window.componentRegistry) {
+                logSuccess('✅ Component registry available');
+                try {
+                    const stats = window.componentRegistry.getStats();
+                    logInfo(`📊 Registry stats: ${stats.registered} registered, ${stats.initialized} initialized`);
+                } catch (e) {
+                    logError('Registry Error', `Failed to get registry stats: ${e.message}`);
+                }
+            } else {
+                logError('Missing Registry', 'Component registry is not available');
+            }
+
+            // Test 5: Check migration helper
+            if (window.migrationHelper) {
+                logSuccess('✅ Migration helper available');
+                try {
+                    const status = window.migrationHelper.getStatus();
+                    logInfo(`🔄 Migration status: Compatible=${status.compatibility}`);
+                } catch (e) {
+                    logError('Migration Error', `Failed to get migration status: ${e.message}`);
+                }
+            } else {
+                logError('Missing Migration', 'Migration helper is not available');
+            }
+
+            // Test 6: Test basic functionality
+            try {
+                // Test state manager
+                if (window.stateManager) {
+                    window.stateManager.setState('test.value', 'hello');
+                    const value = window.stateManager.getState('test.value');
+                    if (value === 'hello') {
+                        logSuccess('✅ State manager basic functionality works');
+                    } else {
+                        logError('State Manager', 'Basic functionality test failed');
+                    }
+                }
+
+                // Test event bus
+                if (window.eventBus) {
+                    let eventReceived = false;
+                    window.eventBus.on('test.event', () => { eventReceived = true; });
+                    window.eventBus.emit('test.event');
+                    if (eventReceived) {
+                        logSuccess('✅ Event bus basic functionality works');
+                    } else {
+                        logError('Event Bus', 'Basic functionality test failed');
+                    }
+                }
+
+            } catch (e) {
+                logError('Functionality Test', `Error testing basic functionality: ${e.message}`);
+            }
+
+            // Final summary
+            setTimeout(() => {
+                const totalErrors = document.querySelectorAll('.test-result.error').length;
+                const totalSuccess = document.querySelectorAll('.test-result.success').length;
+                
+                if (totalErrors === 0) {
+                    logSuccess(`🎉 All tests passed! (${totalSuccess} successful checks)`);
+                } else {
+                    logError('Test Summary', `${totalErrors} errors found, ${totalSuccess} successful checks`);
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

@@ -38,6 +38,11 @@ class GuestSession {
             totalSpins: 0,
             highestQualityScore: 0,
             favoriteGenres: {},
+            guestSpinLimit: {
+                maxSpins: 2,           // Initial guest spin limit
+                spinsUsed: 0,          // Spins used by guest
+                bonusSpinsEarned: 0    // Bonus spins from signup
+            },
             sessionProgress: {
                 hasSpun: false,
                 educationShown: false,
@@ -107,55 +112,98 @@ class GuestSession {
 
     // Spin tracking
     recordSpin(content) {
-        const session = this.getSession();
-        if (!session) return;
+        try {
+            const session = this.getSession();
+            if (!session) {
+                console.warn('No guest session found when recording spin');
+                return;
+            }
 
-        session.spinsUsed++;
-        session.totalSpins++;
-        session.lastSpinTime = Date.now();
-        
-        // Update streak
-        const timeSinceLastSpin = session.lastSpinTime - (session.previousSpinTime || session.startTime);
-        if (timeSinceLastSpin < 300000) { // Within 5 minutes
-            session.spinStreak++;
-        } else {
-            session.spinStreak = 1;
-        }
-        session.previousSpinTime = session.lastSpinTime;
+            // Validate content before processing
+            if (!content || typeof content.quality_score === 'undefined') {
+                console.warn('Invalid content provided to recordSpin:', content);
+                return;
+            }
 
-        // Track content unlock
-        if (content) {
-            session.unlockedContent.push({
-                ...content,
-                unlockedAt: Date.now(),
-                sessionSpin: session.totalSpins
-            });
+            session.spinsUsed++;
+            session.totalSpins++;
+            session.lastSpinTime = Date.now();
+            
+            // Track guest spin usage
+            if (!session.guestSpinLimit) {
+                // Migrate old sessions
+                session.guestSpinLimit = {
+                    maxSpins: 2,
+                    spinsUsed: session.totalSpins,
+                    bonusSpinsEarned: 0
+                };
+            } else {
+                session.guestSpinLimit.spinsUsed++;
+            }
+            
+            // Update streak
+            const timeSinceLastSpin = session.lastSpinTime - (session.previousSpinTime || session.startTime);
+            if (timeSinceLastSpin < 300000) { // Within 5 minutes
+                session.spinStreak++;
+            } else {
+                session.spinStreak = 1;
+            }
+            session.previousSpinTime = session.lastSpinTime;
+
+            // Track content unlock with validation
+            if (content) {
+                const unlock = {
+                    ...content,
+                    unlockedAt: Date.now(),
+                    sessionSpin: session.totalSpins,
+                    // Ensure required fields exist
+                    title: content.title || 'Unknown Title',
+                    quality_score: content.quality_score || 0,
+                    type: content.type || 'movie'
+                };
+                session.unlockedContent.push(unlock);
+
+                // Update rarity stats with better error handling
+                try {
+                    if (window.Utils && typeof window.Utils.getRarityTier === 'function') {
+                        const rarity = Utils.getRarityTier(content.quality_score).tier;
+                        session.rarityStats[rarity] = (session.rarityStats[rarity] || 0) + 1;
+                    }
+                } catch (error) {
+                    console.warn('Error updating rarity stats:', error);
+                    // Continue without breaking the flow
+                }
+
+                // Track highest quality score
+                if (content.quality_score > session.highestQualityScore) {
+                    session.highestQualityScore = content.quality_score;
+                }
+
+                // Track favorite genres (if available)
+                if (content.genre) {
+                    session.favoriteGenres[content.genre] = (session.favoriteGenres[content.genre] || 0) + 1;
+                }
+            }
+
+            // Update progress flags
+            session.sessionProgress.hasSpun = true;
+
+            // Save session with error handling
+            this.saveSession(session);
+            this.checkAchievements(session);
             
             // Dispatch event to notify trophy cabinet of new unlock
-            document.dispatchEvent(new CustomEvent('guestUnlockAdded', {
-                detail: { content: content }
-            }));
+            setTimeout(() => {
+                document.dispatchEvent(new CustomEvent('guestUnlockAdded', {
+                    detail: { content: content }
+                }));
+            }, 50); // Small delay to ensure session is saved
+            
 
-            // Update rarity stats
-            const rarity = Utils.getRarityTier(content.quality_score).tier;
-            session.rarityStats[rarity] = (session.rarityStats[rarity] || 0) + 1;
-
-            // Track highest quality score
-            if (content.quality_score > session.highestQualityScore) {
-                session.highestQualityScore = content.quality_score;
-            }
-
-            // Track favorite genres (if available)
-            if (content.genre) {
-                session.favoriteGenres[content.genre] = (session.favoriteGenres[content.genre] || 0) + 1;
-            }
+        } catch (error) {
+            console.error('Error in recordSpin:', error);
+            // Don't throw the error - just log it to prevent global error handlers
         }
-
-        // Update progress flags
-        session.sessionProgress.hasSpun = true;
-
-        this.saveSession(session);
-        this.checkAchievements(session);
     }
 
     checkAchievements(session) {
@@ -365,6 +413,47 @@ class GuestSession {
         if (genres.length === 0) return 'Exploring';
 
         return genres.reduce((a, b) => a[1] > b[1] ? a : b)[0];
+    }
+
+    // Guest spin management
+    getGuestSpinStatus() {
+        const session = this.getSession();
+        if (!session || !session.guestSpinLimit) {
+            return { remaining: 0, used: 0, total: 2 };
+        }
+        
+        const { maxSpins, spinsUsed, bonusSpinsEarned } = session.guestSpinLimit;
+        const totalAvailable = maxSpins + bonusSpinsEarned;
+        const remaining = Math.max(0, totalAvailable - spinsUsed);
+        
+        return {
+            remaining,
+            used: spinsUsed,
+            total: totalAvailable,
+            canSpin: remaining > 0
+        };
+    }
+    
+    hasSpinsRemaining() {
+        const spinStatus = this.getGuestSpinStatus();
+        return spinStatus.canSpin;
+    }
+    
+    addBonusSpins(count = 1) {
+        const session = this.getSession();
+        if (!session) return;
+        
+        if (!session.guestSpinLimit) {
+            session.guestSpinLimit = {
+                maxSpins: 2,
+                spinsUsed: 0,
+                bonusSpinsEarned: count
+            };
+        } else {
+            session.guestSpinLimit.bonusSpinsEarned += count;
+        }
+        
+        this.saveSession(session);
     }
 
     // Check if user is a guest

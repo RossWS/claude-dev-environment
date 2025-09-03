@@ -39,6 +39,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
                 id: user.id,
                 username: user.username,
                 email: user.email,
+                timezone: user.timezone,
                 memberSince: user.created_at,
                 lastLogin: user.last_login,
                 stats: {
@@ -485,7 +486,7 @@ router.get('/achievements', authenticateToken, async (req, res) => {
 router.put('/profile', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.userId;
-        const { username, email } = req.body;
+        const { username, email, timezone } = req.body;
 
         // Validation
         if (!username || !email) {
@@ -523,11 +524,31 @@ router.put('/profile', authenticateToken, async (req, res) => {
             });
         }
 
+        // Validate timezone if provided
+        if (timezone) {
+            try {
+                // Test if timezone is valid by attempting to create a DateTimeFormat with it
+                Intl.DateTimeFormat('en', { timeZone: timezone });
+            } catch (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid timezone'
+                });
+            }
+        }
+
         // Update user profile
-        await db.run(
-            'UPDATE users SET username = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-            [username, email, userId]
-        );
+        if (timezone !== undefined) {
+            await db.run(
+                'UPDATE users SET username = ?, email = ?, timezone = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [username, email, timezone, userId]
+            );
+        } else {
+            await db.run(
+                'UPDATE users SET username = ?, email = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [username, email, userId]
+            );
+        }
 
         res.json({
             success: true,

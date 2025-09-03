@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refactored Components Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5; 
+        }
+        .test-container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section { 
+            margin-bottom: 30px; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+        }
+        .test-section h2 { 
+            margin-top: 0; 
+            color: #333; 
+            border-bottom: 2px solid #007acc; 
+            padding-bottom: 10px;
+        }
+        .test-result { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+        .warning { 
+            background: #fff3cd; 
+            color: #856404; 
+            border: 1px solid #ffeaa7; 
+        }
+        .info { 
+            background: #d1ecf1; 
+            color: #0c5460; 
+            border: 1px solid #b6d4db; 
+        }
+        button { 
+            background: #007acc; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px; 
+        }
+        button:hover { 
+            background: #005fa3; 
+        }
+        .component-demo { 
+            min-height: 200px; 
+            border: 1px dashed #ccc; 
+            padding: 20px; 
+            margin: 10px 0; 
+            border-radius: 4px;
+        }
+        pre { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007acc;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Refactored Components Test Suite</h1>
+        <p>Testing the new component architecture, state management, and compatibility.</p>
+
+        <div class="test-section">
+            <h2>🔧 Core Services Test</h2>
+            <button onclick="testCoreServices()">Test Core Services</button>
+            <button onclick="testStateManager()">Test State Manager</button>
+            <button onclick="testEventBus()">Test Event Bus</button>
+            <button onclick="testStorageManager()">Test Storage Manager</button>
+            <div id="coreServicesResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧩 Base Components Test</h2>
+            <button onclick="testBaseComponents()">Test Base Components</button>
+            <button onclick="createTestModal()">Test Modal</button>
+            <button onclick="createTestForm()">Test Form</button>
+            <div id="baseComponentsResults"></div>
+            <div id="baseComponentsDemo" class="component-demo"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>👑 Admin Components Test</h2>
+            <button onclick="testAdminComponents()">Test Admin Components</button>
+            <button onclick="createAdminDashboard()">Create Dashboard</button>
+            <div id="adminComponentsResults"></div>
+            <div id="adminComponentsDemo" class="component-demo"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>👤 Profile Components Test</h2>
+            <button onclick="testProfileComponents()">Test Profile Components</button>
+            <button onclick="createProfileEditor()">Create Profile Editor</button>
+            <div id="profileComponentsResults"></div>
+            <div id="profileComponentsDemo" class="component-demo"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🏆 Trophy Components Test</h2>
+            <button onclick="testTrophyComponents()">Test Trophy Components</button>
+            <button onclick="createTrophyGrid()">Create Trophy Grid</button>
+            <div id="trophyComponentsResults"></div>
+            <div id="trophyComponentsDemo" class="component-demo"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Component Registry Test</h2>
+            <button onclick="testComponentRegistry()">Test Registry</button>
+            <button onclick="showRegistryStats()">Show Stats</button>
+            <div id="registryResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔄 Migration Test</h2>
+            <button onclick="testMigration()">Test Migration</button>
+            <button onclick="showMigrationStatus()">Show Status</button>
+            <div id="migrationResults"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Overall Stats</h2>
+            <div class="stats-grid" id="overallStats"></div>
+        </div>
+    </div>
+
+    <!-- Load all the component scripts -->
+    <script>
+        // Test utilities
+        function logResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            const container = document.getElementById(containerId);
+            if (container) container.innerHTML = '';
+        }
+
+        // Core Services Tests
+        function testCoreServices() {
+            clearResults('coreServicesResults');
+            
+            // Test StateManager
+            if (typeof StateManager !== 'undefined') {
+                logResult('coreServicesResults', '✅ StateManager class available', 'success');
+                
+                if (window.stateManager) {
+                    logResult('coreServicesResults', '✅ Global stateManager instance available', 'success');
+                    
+                    // Test basic functionality
+                    window.stateManager.setState('test.value', 'hello');
+                    const value = window.stateManager.getState('test.value');
+                    
+                    if (value === 'hello') {
+                        logResult('coreServicesResults', '✅ StateManager basic functionality works', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ StateManager basic functionality failed', 'error');
+                    }
+                } else {
+                    logResult('coreServicesResults', '❌ Global stateManager instance not found', 'error');
+                }
+            } else {
+                logResult('coreServicesResults', '❌ StateManager class not found', 'error');
+            }
+
+            // Test EventBus
+            if (typeof EventBus !== 'undefined') {
+                logResult('coreServicesResults', '✅ EventBus class available', 'success');
+                
+                if (window.eventBus) {
+                    logResult('coreServicesResults', '✅ Global eventBus instance available', 'success');
+                    
+                    // Test basic functionality
+                    let eventReceived = false;
+                    window.eventBus.on('test.event', () => { eventReceived = true; });
+                    window.eventBus.emit('test.event');
+                    
+                    if (eventReceived) {
+                        logResult('coreServicesResults', '✅ EventBus basic functionality works', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ EventBus basic functionality failed', 'error');
+                    }
+                } else {
+                    logResult('coreServicesResults', '❌ Global eventBus instance not found', 'error');
+                }
+            } else {
+                logResult('coreServicesResults', '❌ EventBus class not found', 'error');
+            }
+
+            // Test StorageManager
+            if (typeof StorageManager !== 'undefined') {
+                logResult('coreServicesResults', '✅ StorageManager class available', 'success');
+                
+                if (window.storageManager) {
+                    logResult('coreServicesResults', '✅ Global storageManager instance available', 'success');
+                    
+                    // Test basic functionality
+                    window.storageManager.set('test.key', 'test.value');
+                    const stored = window.storageManager.get('test.key');
+                    
+                    if (stored === 'test.value') {
+                        logResult('coreServicesResults', '✅ StorageManager basic functionality works', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ StorageManager basic functionality failed', 'error');
+                    }
+                } else {
+                    logResult('coreServicesResults', '❌ Global storageManager instance not found', 'error');
+                }
+            } else {
+                logResult('coreServicesResults', '❌ StorageManager class not found', 'error');
+            }
+        }
+
+        function testStateManager() {
+            clearResults('coreServicesResults');
+            
+            if (!window.stateManager) {
+                logResult('coreServicesResults', '❌ StateManager not available', 'error');
+                return;
+            }
+
+            try {
+                // Test subscription
+                let subscriptionWorks = false;
+                const unsubscribe = window.stateManager.subscribe('test.subscription', (value) => {
+                    subscriptionWorks = true;
+                });
+
+                window.stateManager.setState('test.subscription', 'test');
+                
+                setTimeout(() => {
+                    if (subscriptionWorks) {
+                        logResult('coreServicesResults', '✅ StateManager subscription works', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ StateManager subscription failed', 'error');
+                    }
+                    unsubscribe();
+                }, 100);
+
+                // Test state persistence
+                window.stateManager.persist('test-state');
+                logResult('coreServicesResults', '✅ StateManager persistence test completed', 'success');
+
+                // Test batch updates
+                window.stateManager.setState({
+                    'test.batch1': 'value1',
+                    'test.batch2': 'value2'
+                });
+
+                const batch1 = window.stateManager.getState('test.batch1');
+                const batch2 = window.stateManager.getState('test.batch2');
+                
+                if (batch1 === 'value1' && batch2 === 'value2') {
+                    logResult('coreServicesResults', '✅ StateManager batch updates work', 'success');
+                } else {
+                    logResult('coreServicesResults', '❌ StateManager batch updates failed', 'error');
+                }
+
+            } catch (error) {
+                logResult('coreServicesResults', `❌ StateManager test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testEventBus() {
+            clearResults('coreServicesResults');
+            
+            if (!window.eventBus) {
+                logResult('coreServicesResults', '❌ EventBus not available', 'error');
+                return;
+            }
+
+            try {
+                // Test event emission and listening
+                let asyncEventReceived = false;
+                window.eventBus.on('test.async', () => { asyncEventReceived = true; });
+                
+                window.eventBus.emit('test.async', null, { async: true }).then(() => {
+                    if (asyncEventReceived) {
+                        logResult('coreServicesResults', '✅ EventBus async events work', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ EventBus async events failed', 'error');
+                    }
+                });
+
+                // Test once functionality
+                let onceCount = 0;
+                window.eventBus.once('test.once', () => { onceCount++; });
+                window.eventBus.emit('test.once');
+                window.eventBus.emit('test.once');
+                
+                setTimeout(() => {
+                    if (onceCount === 1) {
+                        logResult('coreServicesResults', '✅ EventBus once functionality works', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ EventBus once functionality failed', 'error');
+                    }
+                }, 100);
+
+                // Test namespaces
+                const testNamespace = window.eventBus.namespace('test');
+                let namespaceEventReceived = false;
+                
+                testNamespace.on('namespaced', () => { namespaceEventReceived = true; });
+                testNamespace.emit('namespaced', null);
+                
+                setTimeout(() => {
+                    if (namespaceEventReceived) {
+                        logResult('coreServicesResults', '✅ EventBus namespaces work', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ EventBus namespaces failed', 'error');
+                    }
+                }, 100);
+
+            } catch (error) {
+                logResult('coreServicesResults', `❌ EventBus test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testStorageManager() {
+            clearResults('coreServicesResults');
+            
+            if (!window.storageManager) {
+                logResult('coreServicesResults', '❌ StorageManager not available', 'error');
+                return;
+            }
+
+            try {
+                // Test different storage types
+                ['local', 'session', 'memory'].forEach(storageType => {
+                    const testKey = `test-${storageType}`;
+                    const testValue = { type: storageType, timestamp: Date.now() };
+                    
+                    window.storageManager.set(testKey, testValue, { storageType });
+                    const retrieved = window.storageManager.get(testKey, storageType);
+                    
+                    if (JSON.stringify(retrieved) === JSON.stringify(testValue)) {
+                        logResult('coreServicesResults', `✅ StorageManager ${storageType} storage works`, 'success');
+                    } else {
+                        logResult('coreServicesResults', `❌ StorageManager ${storageType} storage failed`, 'error');
+                    }
+                });
+
+                // Test expiration
+                window.storageManager.setExpiring('test-expire', 'should-expire', 100);
+                setTimeout(() => {
+                    const expired = window.storageManager.get('test-expire');
+                    if (expired === null) {
+                        logResult('coreServicesResults', '✅ StorageManager expiration works', 'success');
+                    } else {
+                        logResult('coreServicesResults', '❌ StorageManager expiration failed', 'error');
+                    }
+                }, 150);
+
+                // Test batch operations
+                const batchData = {
+                    'batch1': 'value1',
+                    'batch2': 'value2',
+                    'batch3': 'value3'
+                };
+                
+                window.storageManager.setMany(batchData);
+                const retrieved = window.storageManager.getMany(Object.keys(batchData));
+                
+                let batchSuccess = true;
+                Object.entries(batchData).forEach(([key, value]) => {
+                    if (retrieved[key] !== value) {
+                        batchSuccess = false;
+                    }
+                });
+                
+                if (batchSuccess) {
+                    logResult('coreServicesResults', '✅ StorageManager batch operations work', 'success');
+                } else {
+                    logResult('coreServicesResults', '❌ StorageManager batch operations failed', 'error');
+                }
+
+            } catch (error) {
+                logResult('coreServicesResults', `❌ StorageManager test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Base Components Tests
+        function testBaseComponents() {
+            clearResults('baseComponentsResults');
+            
+            const baseComponents = ['BaseComponent', 'BaseModal', 'BaseForm'];
+            
+            baseComponents.forEach(componentName => {
+                if (typeof window[componentName] !== 'undefined') {
+                    logResult('baseComponentsResults', `✅ ${componentName} class available`, 'success');
+                    
+                    try {
+                        // Create a simple test element
+                        const testElement = document.createElement('div');
+                        testElement.id = `test-${componentName.toLowerCase()}`;
+                        document.body.appendChild(testElement);
+                        
+                        // Try to instantiate
+                        const instance = new window[componentName](`#test-${componentName.toLowerCase()}`);
+                        
+                        if (instance && instance.element) {
+                            logResult('baseComponentsResults', `✅ ${componentName} instantiation works`, 'success');
+                            
+                            // Test basic methods
+                            if (typeof instance.render === 'function') {
+                                instance.render();
+                                logResult('baseComponentsResults', `✅ ${componentName} render method works`, 'success');
+                            }
+                            
+                            if (typeof instance.destroy === 'function') {
+                                instance.destroy();
+                                logResult('baseComponentsResults', `✅ ${componentName} destroy method works`, 'success');
+                            }
+                        } else {
+                            logResult('baseComponentsResults', `❌ ${componentName} instantiation failed`, 'error');
+                        }
+                        
+                        // Cleanup
+                        document.body.removeChild(testElement);
+                        
+                    } catch (error) {
+                        logResult('baseComponentsResults', `❌ ${componentName} test error: ${error.message}`, 'error');
+                    }
+                } else {
+                    logResult('baseComponentsResults', `❌ ${componentName} class not found`, 'error');
+                }
+            });
+        }
+
+        function createTestModal() {
+            if (typeof BaseModal === 'undefined') {
+                logResult('baseComponentsResults', '❌ BaseModal not available', 'error');
+                return;
+            }
+
+            try {
+                const modalElement = document.createElement('div');
+                modalElement.className = 'modal';
+                modalElement.innerHTML = `
+                    <div class="modal-content">
+                        <h3>Test Modal</h3>
+                        <p>This is a test modal created with BaseModal</p>
+                        <button class="close-modal">Close</button>
+                    </div>
+                `;
+                document.body.appendChild(modalElement);
+
+                const modal = new BaseModal(modalElement);
+                modal.open();
+                
+                logResult('baseComponentsResults', '✅ Test modal created and opened', 'success');
+                
+                setTimeout(() => {
+                    modal.close();
+                    document.body.removeChild(modalElement);
+                    logResult('baseComponentsResults', '✅ Test modal closed and cleaned up', 'success');
+                }, 2000);
+
+            } catch (error) {
+                logResult('baseComponentsResults', `❌ Modal test error: ${error.message}`, 'error');
+            }
+        }
+
+        function createTestForm() {
+            if (typeof BaseForm === 'undefined') {
+                logResult('baseComponentsResults', '❌ BaseForm not available', 'error');
+                return;
+            }
+
+            try {
+                const demoContainer = document.getElementById('baseComponentsDemo');
+                demoContainer.innerHTML = `
+                    <form id="test-form">
+                        <h3>Test Form</h3>
+                        <div>
+                            <label>Email:</label>
+                            <input type="email" name="email" required>
+                        </div>
+                        <div>
+                            <label>Password:</label>
+                            <input type="password" name="password" required>
+                        </div>
+                        <button type="submit">Submit</button>
+                    </form>
+                `;
+
+                const form = new BaseForm('#test-form');
+                
+                // Add validators
+                form.addEmailValidator('email');
+                form.addMinLengthValidator('password', 6);
+                
+                // Override onSubmit
+                form.onSubmit = (formData) => {
+                    logResult('baseComponentsResults', `✅ Form submitted with data: ${JSON.stringify(formData)}`, 'success');
+                    return false; // Prevent actual submission
+                };
+
+                logResult('baseComponentsResults', '✅ Test form created with validation', 'success');
+
+            } catch (error) {
+                logResult('baseComponentsResults', `❌ Form test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Component Registry Tests
+        function testComponentRegistry() {
+            clearResults('registryResults');
+            
+            if (!window.componentRegistry) {
+                logResult('registryResults', '❌ Component registry not available', 'error');
+                return;
+            }
+
+            try {
+                const registry = window.componentRegistry;
+                
+                // Test registration
+                class TestComponent extends BaseComponent {
+                    constructor(selector, options) {
+                        super(selector, options);
+                    }
+                    render() {
+                        this.element.innerHTML = '<p>Test component rendered</p>';
+                    }
+                }
+
+                registry.register('testComponent', TestComponent);
+                logResult('registryResults', '✅ Component registration works', 'success');
+
+                // Test component creation
+                const testElement = document.createElement('div');
+                testElement.id = 'test-component-container';
+                document.body.appendChild(testElement);
+
+                const component = registry.create('testComponent', testElement);
+                if (component && component.element) {
+                    logResult('registryResults', '✅ Component creation works', 'success');
+                    
+                    component.render();
+                    if (testElement.innerHTML.includes('Test component rendered')) {
+                        logResult('registryResults', '✅ Component rendering works', 'success');
+                    }
+                } else {
+                    logResult('registryResults', '❌ Component creation failed', 'error');
+                }
+
+                // Test registry stats
+                const stats = registry.getStats();
+                logResult('registryResults', `✅ Registry stats: ${JSON.stringify(stats)}`, 'info');
+
+                // Cleanup
+                document.body.removeChild(testElement);
+
+            } catch (error) {
+                logResult('registryResults', `❌ Registry test error: ${error.message}`, 'error');
+            }
+        }
+
+        function showRegistryStats() {
+            if (!window.componentRegistry) {
+                logResult('registryResults', '❌ Component registry not available', 'error');
+                return;
+            }
+
+            const registry = window.componentRegistry;
+            const stats = registry.getStats();
+            const components = registry.listComponents();
+
+            logResult('registryResults', `📊 Registry Stats:<br>
+                - Registered: ${stats.registered}<br>
+                - Initialized: ${stats.initialized}<br>
+                - Instances: ${stats.instances}<br>
+                - Load Order: ${stats.loadOrder.join(', ')}`, 'info');
+
+            if (components.length > 0) {
+                const componentList = components.map(c => 
+                    `${c.name} (${c.initialized ? 'initialized' : 'not initialized'})`
+                ).join(', ');
+                logResult('registryResults', `📋 Components: ${componentList}`, 'info');
+            }
+        }
+
+        // Migration Tests  
+        function testMigration() {
+            clearResults('migrationResults');
+            
+            if (!window.migrationHelper) {
+                logResult('migrationResults', '❌ Migration helper not available', 'error');
+                return;
+            }
+
+            try {
+                const compatibility = window.migrationHelper.checkCompatibility();
+                if (compatibility) {
+                    logResult('migrationResults', '✅ Compatibility check passed', 'success');
+                } else {
+                    logResult('migrationResults', '⚠️ Some compatibility issues found', 'warning');
+                }
+
+                const status = window.migrationHelper.getStatus();
+                logResult('migrationResults', `📊 Migration Status:<br>
+                    - Compatible: ${status.compatibility}<br>
+                    - Legacy Components: ${status.legacyComponents.length}<br>
+                    - Migration Log Entries: ${status.migrationLog}<br>
+                    - New Components Enabled: ${status.newComponentsEnabled}`, 'info');
+
+            } catch (error) {
+                logResult('migrationResults', `❌ Migration test error: ${error.message}`, 'error');
+            }
+        }
+
+        function showMigrationStatus() {
+            if (!window.migrationHelper) {
+                logResult('migrationResults', '❌ Migration helper not available', 'error');
+                return;
+            }
+
+            const status = window.migrationHelper.getStatus();
+            const log = window.migrationHelper.getMigrationLog().slice(-5); // Last 5 entries
+
+            logResult('migrationResults', `📋 Recent Migration Log:<br>
+                ${log.map(entry => `- ${entry}`).join('<br>')}`, 'info');
+        }
+
+        // Overall stats
+        function updateOverallStats() {
+            const statsContainer = document.getElementById('overallStats');
+            
+            const stats = {
+                'Core Services': Object.keys(window).filter(key => 
+                    ['stateManager', 'eventBus', 'storageManager'].includes(key)
+                ).length,
+                'Base Components': Object.keys(window).filter(key => 
+                    key.startsWith('Base') && typeof window[key] === 'function'
+                ).length,
+                'Admin Components': Object.keys(window).filter(key => 
+                    ['AdminDashboard', 'ContentManager', 'UserManagement', 'SystemSettings'].includes(key)
+                ).length,
+                'Profile Components': Object.keys(window).filter(key => 
+                    ['ProfileEditor', 'ShowcaseManager', 'StatisticsDisplay'].includes(key)
+                ).length,
+                'Trophy Components': Object.keys(window).filter(key => 
+                    ['TrophyGrid', 'TrophyFilters', 'RarityManager', 'ExportManager'].includes(key)
+                ).length
+            };
+
+            statsContainer.innerHTML = Object.entries(stats).map(([label, value]) => `
+                <div class="stat-card">
+                    <div class="stat-value">${value}</div>
+                    <div class="stat-label">${label}</div>
+                </div>
+            `).join('');
+        }
+
+        // Auto-run on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateOverallStats();
+            
+            // Auto-test core services
+            setTimeout(() => {
+                testCoreServices();
+            }, 1000);
+        });
+
+        // Placeholder functions for components not yet loaded
+        function testAdminComponents() {
+            logResult('adminComponentsResults', '⚠️ Admin component testing not fully implemented yet', 'warning');
+        }
+
+        function createAdminDashboard() {
+            logResult('adminComponentsResults', '⚠️ Admin dashboard demo not fully implemented yet', 'warning');
+        }
+
+        function testProfileComponents() {
+            logResult('profileComponentsResults', '⚠️ Profile component testing not fully implemented yet', 'warning');
+        }
+
+        function createProfileEditor() {
+            logResult('profileComponentsResults', '⚠️ Profile editor demo not fully implemented yet', 'warning');
+        }
+
+        function testTrophyComponents() {
+            logResult('trophyComponentsResults', '⚠️ Trophy component testing not fully implemented yet', 'warning');
+        }
+
+        function createTrophyGrid() {
+            logResult('trophyComponentsResults', '⚠️ Trophy grid demo not fully implemented yet', 'warning');
+        }
+    </script>
+</body>
+</html>
